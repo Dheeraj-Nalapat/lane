@@ -189,14 +189,59 @@ Decision: **git worktree name.** Branch-independent, stable, matches
   is **already claimed by a stack from a different path** and refuses with a
   clear message rather than silently colliding.
 
+## CLI command surface
+
+### Core lifecycle
+
+| Command | Behavior |
+|---|---|
+| `berth up [path]` | Derive slug → ensure proxy is up → generate the override → set env (`COMPOSE_PROJECT_NAME`, free Tilt port, image-tag namespace) → run `tilt up -- --docker`. Prints the friendly URL(s). **Foreground by default**; `-d/--detach` backgrounds it. |
+| `berth down [path]` | Tear down this stack (`tilt down` in the reconstructed context) and delete the generated override. Repo left pristine. |
+| `berth ls` | Quick, flat, scriptable list of running stacks: slug, project path, URL(s), Tilt port, status. |
+| `berth proxy up\|down\|status\|logs` | Manage the shared Traefik. `up` auto-runs it when needed; explicit control still available. |
+| `berth doctor` | Preflight: Docker running? Compose ≥ 2.20 (for `!reset`)? `berth` network present? `*.localhost` → 127.0.0.1? Tilt installed? `:80` free or owned by our Traefik? Reports actionable fixes. |
+
+### Quality-of-life (all in v1)
+
+| Command | Behavior |
+|---|---|
+| `berth init` | Scaffold `.berth.toml` by inspecting the project's compose; propose the web entrypoint service + port. ~30-second onboarding per project. |
+| `berth open [--slug]` | Open the stack's URL in the browser. |
+| `berth logs [--slug]` | Tail a detached stack's Tilt/service logs without opening the Tilt UI. Pairs with `-d`. |
+| `berth view [--watch]` | Rich terminal **control panel**: a tree of each slug → hostname/URL → the services Traefik is actually routing to it (internal port, health) → Tilt port. Built from **Docker labels + the Traefik API** (`/api/http/routers`, `/api/http/services`), so it shows real routing, not just intent. Static snapshot by default; `--watch` live-refreshes. Rendered with a Go TUI lib (Bubble Tea / lipgloss). |
+
+`ls` = quick/scriptable; `view` = rich/human. They serve different needs.
+
+### Global flags
+
+- `--slug <x>` — override identity (top of the resolution ladder).
+- `--dry-run` — print the generated override + the exact `tilt`/env it *would*
+  run, then exit. Directly backs the non-invasive requirement: see precisely
+  what berth does before it acts.
+- `-v/--verbose`.
+
+### State model (stateless)
+
+Truth is derived from **Docker labels**, not a state file — nothing drifts.
+Every managed container carries:
+
+```
+berth.managed=true        berth.slug=<slug>
+berth.project.path=<abs>  berth.url=http://<slug>.localhost
+berth.tilt.port=<port>
+```
+
+`berth ls`/`view` read these (plus the Traefik API); `berth down` reconstructs
+context from `berth.project.path`. The **only** runtime state is a pidfile under
+`~/.berth/run/<slug>.pid`, created **only** when `-d/--detach` is used, to stop
+the host-side Tilt process later.
+
 ## Open / still to design
 
 These are not yet decided and will be brainstormed before implementation:
 
 1. ~~Slug derivation rules~~ — **decided** (see "Slug derivation" above).
-2. **CLI command surface** — likely `up`, `ls`, `down`, `proxy up|down|status`,
-   `doctor`; exact flags and output format. Registry derived from Docker labels
-   (stateless) vs a state file.
+2. ~~CLI command surface~~ — **decided** (see "CLI command surface" above).
 3. **Tilt UI routing** — free host port per instance vs also routing the Tilt
    dashboard through Traefik (`tilt.<slug>.localhost`).
 4. **Distribution mechanics** — language is decided (**Go**, see Decisions).
