@@ -1,8 +1,7 @@
-# berth — Design Spec (v0.1, WIP)
+# berth — Design Spec (v1.0)
 
 **Date:** 2026-06-08
-**Status:** Brainstorm in progress. This captures decisions made so far; the
-"Open / still to design" section lists what remains.
+**Status:** Design complete — ready for implementation planning.
 
 > **Name:** *berth* — a place a ship docks. Every stack gets its own berth
 > instead of fighting over a shared port slot. CLI verbs: `berth up`,
@@ -286,16 +285,22 @@ run time. Outside berth nothing activates. Other frontends (Next.js, CRA) share
 the same three concepts with different config — solved for Vite now (ReMind uses
 it), documented as a pattern for others later.
 
-## Open / still to design
+## Distribution
 
-These are not yet decided and will be brainstormed before implementation:
+Built and shipped with **GoReleaser**, triggered on a git tag in CI:
 
-1. ~~Slug derivation rules~~ — **decided** (see "Slug derivation" above).
-2. ~~CLI command surface~~ — **decided** (see "CLI command surface" above).
-3. ~~Tilt UI routing~~ — **decided** (see "Tilt UI routing" above).
-4. ~~Vite-behind-proxy specifics~~ — **decided** (see "Vite behind the proxy").
-5. **Distribution mechanics** — language is decided (**Go**, see Decisions).
-   Remaining: release channels (GitHub Releases prebuilt binaries, Homebrew tap,
-   `go install`, `curl | sh` installer) and the build/CI pipeline.
-6. **HTTPS** — deferred; note for future (mkcert/Traefik TLS) if apps need
-   secure cookies.
+- **GitHub Releases** — prebuilt binaries for macOS (Intel + ARM), Linux, and
+  Windows. Zero runtime dependencies.
+- **Homebrew tap** — `brew install <tap>/berth` for the primary install path.
+- **`curl | sh` installer** — one-liner that drops the right binary into
+  `/usr/local/bin` for non-Homebrew users.
+- `go install` also works for Go developers.
+
+## Deferred (post-v1)
+
+- **HTTPS / TLS** for local hostnames (mkcert or Traefik's local CA). Add if an
+  app needs secure cookies or HTTPS-only APIs. v1 is HTTP `:80` only.
+- **Non-Vite frontend presets** (Next.js, CRA) — same three concepts as Vite,
+  documented as a pattern; bake in presets once needed.
+- **General-purpose / third-party project support** — v1 targets the user's own
+  projects; generalize after the rough edges are known.
