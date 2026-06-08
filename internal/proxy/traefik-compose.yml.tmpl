@@ -1,0 +1,31 @@
+services:
+  proxy:
+    image: traefik:v3.1
+    container_name: berth-proxy
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network={{.Network}}
+      - --providers.file.directory=/dynamic
+      - --providers.file.watch=true
+      - --entryPoints.web.address=:80
+      - --api.dashboard=true
+      - --api.insecure=true
+    labels:
+      - berth.managed=true
+      - berth.proxy=true
+    ports:
+      - "80:80"
+      - "127.0.0.1:8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - {{.DynamicDir}}:/dynamic:ro
+    networks:
+      - {{.Network}}
+    restart: unless-stopped
+networks:
+  {{.Network}}:
+    name: {{.Network}}
+    external: true
