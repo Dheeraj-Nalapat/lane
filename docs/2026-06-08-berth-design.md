@@ -236,18 +236,66 @@ context from `berth.project.path`. The **only** runtime state is a pidfile under
 `~/.berth/run/<slug>.pid`, created **only** when `-d/--detach` is used, to stop
 the host-side Tilt process later.
 
+## Tilt UI routing
+
+The Tilt dashboard is routed through Traefik at **`tilt-<slug>.localhost`** —
+friendly URLs instead of memorizing per-stack Tilt ports.
+
+Implementation note: Tilt's UI is a **host process**, not a container, so
+Traefik can't discover it by container label. berth writes a small Traefik
+**file-provider** dynamic config mapping `Host(tilt-<slug>.localhost)` →
+`http://host.docker.internal:<tilt-port>`. Traefik is launched with
+`host-gateway` (`--add-host=host.docker.internal:host-gateway` on Linux) so it
+can reach the host. A free host port is still allocated for Tilt to bind; the
+hostname is just the friendly front door.
+
+## Vite behind the proxy
+
+Applies only to projects with a **Vite** frontend (backend-only stacks need
+none of this). Vite's dev server has three behaviors that break behind a proxy
+on a custom hostname; all are handled by a **single env-gated block** in
+`vite.config.ts`, so normal `npm run dev` is byte-for-byte unaffected:
+
+| Problem | Cause | Fix |
+|---|---|---|
+| "Blocked request" | Vite rejects unrecognized Host headers (anti-hijack) | `server.allowedHosts: ['.localhost']` |
+| HMR (hot reload) dies | Page loads on `:80` via Traefik, but Vite's reload WebSocket phones home on the wrong port | `server.hmr.clientPort: 80` + `server.host: '0.0.0.0'` |
+| `/api` 404s | Proxy target `localhost:8000` is wrong inside Docker; backend is the `server` container | env-driven `target` |
+
+Committed change (the **only** app-code edit, fully gated):
+
+```ts
+const berth = !!process.env.BERTH
+export default defineConfig({
+  server: {
+    host: berth ? '0.0.0.0' : 'localhost',
+    allowedHosts: berth ? ['.localhost'] : undefined,
+    hmr: berth ? { clientPort: 80 } : undefined,
+    proxy: {
+      '/api': {
+        target: process.env.BERTH_API_TARGET || 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+})
+```
+
+berth sets `BERTH=1` and `BERTH_API_TARGET=http://<backend-service>:<port>` at
+run time. Outside berth nothing activates. Other frontends (Next.js, CRA) share
+the same three concepts with different config — solved for Vite now (ReMind uses
+it), documented as a pattern for others later.
+
 ## Open / still to design
 
 These are not yet decided and will be brainstormed before implementation:
 
 1. ~~Slug derivation rules~~ — **decided** (see "Slug derivation" above).
 2. ~~CLI command surface~~ — **decided** (see "CLI command surface" above).
-3. **Tilt UI routing** — free host port per instance vs also routing the Tilt
-   dashboard through Traefik (`tilt.<slug>.localhost`).
-4. **Distribution mechanics** — language is decided (**Go**, see Decisions).
+3. ~~Tilt UI routing~~ — **decided** (see "Tilt UI routing" above).
+4. ~~Vite-behind-proxy specifics~~ — **decided** (see "Vite behind the proxy").
+5. **Distribution mechanics** — language is decided (**Go**, see Decisions).
    Remaining: release channels (GitHub Releases prebuilt binaries, Homebrew tap,
    `go install`, `curl | sh` installer) and the build/CI pipeline.
-5. **Vite-behind-proxy specifics** — exact `server.hmr` / `allowedHosts` config
-   and how `/api` proxying resolves to the internal backend in Docker mode.
 6. **HTTPS** — deferred; note for future (mkcert/Traefik TLS) if apps need
    secure cookies.
