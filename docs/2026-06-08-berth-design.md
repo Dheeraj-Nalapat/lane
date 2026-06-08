@@ -50,6 +50,7 @@ browser at the same time**, with **friendly, distinguishable URLs**.
 | Packaging        | **`berth` CLI** as the cockpit over a Traefik + slug mechanism |
 | v1 audience      | My own projects first, publishable-quality, not yet general-purpose |
 | Override style   | berth **generates** the proxy/network/port wiring; committed files stay pristine |
+| Language         | **Go** — single static binary, zero runtime deps; users get a dependency-free artifact regardless of their own stack (TS/Java/etc.) |
 
 ## Architecture
 
@@ -151,9 +152,9 @@ These are not yet decided and will be brainstormed before implementation:
    (stateless) vs a state file.
 3. **Tilt UI routing** — free host port per instance vs also routing the Tilt
    dashboard through Traefik (`tilt.<slug>.localhost`).
-4. **Implementation language / distribution** — Go (single static binary, easy
-   `brew`/install) vs Python (fits the user's stack, `uvx`/`pipx`). Affects
-   publish story.
+4. **Distribution mechanics** — language is decided (**Go**, see Decisions).
+   Remaining: release channels (GitHub Releases prebuilt binaries, Homebrew tap,
+   `go install`, `curl | sh` installer) and the build/CI pipeline.
 5. **Vite-behind-proxy specifics** — exact `server.hmr` / `allowedHosts` config
    and how `/api` proxying resolves to the internal backend in Docker mode.
 6. **HTTPS** — deferred; note for future (mkcert/Traefik TLS) if apps need
