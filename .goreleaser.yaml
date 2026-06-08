@@ -1,0 +1,18 @@
+version: 2
+builds:
+  - main: .
+    binary: berth
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+archives:
+  - formats: [tar.gz]
+    name_template: "berth_{{ .Os }}_{{ .Arch }}"
+brews:
+  - repository:
+      owner: dheerajnalapat        # adjust to real tap repo
+      name: homebrew-berth
+    homepage: "https://github.com/dheerajnalapat/berth"
+    description: "Run many project stacks at once with zero port conflicts"
+checksum:
+  name_template: "checksums.txt"

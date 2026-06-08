@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/dheerajnalapat/berth/internal/gitx"
 	"github.com/dheerajnalapat/berth/internal/manifest"
@@ -44,7 +43,7 @@ func runDown(cmd *cobra.Command, args []string) error {
 	pidFile := filepath.Join(paths.Run(), sl+".pid")
 	if b, err := os.ReadFile(pidFile); err == nil {
 		if pid, err := strconv.Atoi(strings.TrimSpace(string(b))); err == nil {
-			_ = syscall.Kill(pid, syscall.SIGTERM)
+			terminate(pid)
 		}
 		_ = os.Remove(pidFile)
 	}
