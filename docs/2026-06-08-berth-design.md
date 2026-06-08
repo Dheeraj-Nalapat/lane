@@ -140,13 +140,60 @@ near zero and guarantees non-invasiveness):
   name), so two stacks share nothing mutable and a rebuild in one never clobbers
   the other's image.
 
+## Slug derivation
+
+The **slug** is the per-stack identity. Everything else derives from it:
+`Host(<slug>.localhost)`, `COMPOSE_PROJECT_NAME=<slug>`, the per-slug image-tag
+namespace, and the Tilt UI port. Requirements: **deterministic** (same checkout
+→ same slug every run, so URLs are bookmarkable), **unique** across projects and
+worktrees, and **DNS/Docker-safe**.
+
+### Resolution ladder (first match wins)
+
+1. `--slug <x>` flag — explicit override, always wins.
+2. `BERTH_SLUG` env var — same, for scripting.
+3. `.berth.toml` `name` (base) **+ auto worktree suffix** — the normal path.
+4. Fallback: sanitized directory basename (so `berth up` still works in an
+   un-onboarded project; less pretty).
+
+### Normal path (worktree-aware)
+
+The committed `.berth.toml` carries the **base name** (`name = "remind"`).
+Because it's committed, every worktree inherits the same base. berth then
+detects whether it is in a **linked git worktree** and appends a suffix:
+
+- **Main checkout** → slug = `remind`
+- **Linked worktree** → slug = `remind-<worktree>` → e.g. `remind-featx`
+
+Detection: compare `git rev-parse --git-dir` vs `--git-common-dir`. If they
+differ, it's a linked worktree; the worktree's name is the `.git/worktrees/<name>`
+leaf (the same name `git worktree list` shows).
+
+### Suffix source: git worktree name (not branch)
+
+| Source | Stable? | Problem |
+|---|---|---|
+| **git worktree name** (chosen) | yes — fixed at `git worktree add` time | none; tied to the physical checkout |
+| branch name | no — changes on checkout/rename | switching branches silently changes the slug → URL moves, orphaned containers |
+| directory basename | yes | breaks if two worktrees in different parents share a leaf name; redundant with base |
+
+Decision: **git worktree name.** Branch-independent, stable, matches
+`git worktree list`.
+
+### Sanitization & collision handling
+
+- Lowercase; map non-`[a-z0-9-]` → `-`; collapse repeats; trim leading/trailing
+  `-`; must start alphanumeric; cap length (~40 chars, under the 63-char
+  DNS-label limit).
+- Truth lives in Docker labels, so `berth up` checks whether the resolved slug
+  is **already claimed by a stack from a different path** and refuses with a
+  clear message rather than silently colliding.
+
 ## Open / still to design
 
 These are not yet decided and will be brainstormed before implementation:
 
-1. **Slug derivation rules** — exact precedence (explicit flag/env →
-   `.berth.toml` base + worktree suffix → directory/branch name), and
-   DNS-safe sanitization. Worktree suffixing scheme.
+1. ~~Slug derivation rules~~ — **decided** (see "Slug derivation" above).
 2. **CLI command surface** — likely `up`, `ls`, `down`, `proxy up|down|status`,
    `doctor`; exact flags and output format. Registry derived from Docker labels
    (stateless) vs a state file.
