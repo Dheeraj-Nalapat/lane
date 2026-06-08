@@ -320,3 +320,8 @@ Built and shipped with **GoReleaser**, triggered on a git tag in CI:
   documented as a pattern; bake in presets once needed.
 - **General-purpose / third-party project support** — v1 targets the user's own
   projects; generalize after the rough edges are known.
+- **Per-slug image-tag isolation** — the Tiltfile hook (`:${BERTH_SLUG}`) is in
+  place but disabled by default in v1. Until enabled, two worktrees share built
+  image tags; live_update isolates active edits, but a simultaneous full rebuild
+  in one worktree can update the shared tag the other uses. Enable by setting
+  per-slug `image:` tags in compose + the Tiltfile `tag` var.
