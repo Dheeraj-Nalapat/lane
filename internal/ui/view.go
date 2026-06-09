@@ -43,7 +43,9 @@ func Render(stacks []stack.Stack, routers []traefikapi.Router) string {
 		}
 		b.WriteString(state + "  " + dimStyle.Render(s.ProjectPath) + "\n")
 		b.WriteString("  " + s.URL + "\n")
-		b.WriteString(fmt.Sprintf("  %s\n", dimStyle.Render(fmt.Sprintf("tilt → http://tilt-%s.localhost (:%d)", s.Slug, s.TiltPort))))
+		if s.TiltPort > 0 {
+			b.WriteString(fmt.Sprintf("  %s\n", dimStyle.Render(fmt.Sprintf("tilt → http://tilt-%s.localhost (:%d)", s.Slug, s.TiltPort))))
+		}
 		for _, r := range routesBySlug[s.Slug] {
 			mark := "✓"
 			if r.Status != "enabled" {

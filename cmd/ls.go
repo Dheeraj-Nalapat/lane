@@ -24,7 +24,11 @@ var lsCmd = &cobra.Command{
 			if s.Running {
 				state = "running"
 			}
-			fmt.Fprintf(w, "%s\t%s\t%d\t%s\t%s\n", s.Slug, s.URL, s.TiltPort, state, s.ProjectPath)
+			tilt := "-"
+			if s.TiltPort > 0 {
+				tilt = fmt.Sprintf("%d", s.TiltPort)
+			}
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", s.Slug, s.URL, tilt, state, s.ProjectPath)
 		}
 		return w.Flush()
 	},
