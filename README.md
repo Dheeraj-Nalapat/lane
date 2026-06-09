@@ -1,4 +1,4 @@
-# lane 🛣️
+# Lane 🛣️
 
 [![CI](https://github.com/Dheeraj-Nalapat/lane/actions/workflows/ci.yml/badge.svg)](https://github.com/Dheeraj-Nalapat/lane/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Dheeraj-Nalapat/lane)](https://github.com/Dheeraj-Nalapat/lane/releases)
