@@ -13,6 +13,10 @@ follow ReMind's own BE_TASKS.md tracking convention when you apply it.
 
 ## Tiltfile contract (learned from live testing)
 
+> These requirements apply **only to Tilt projects**. A project with no Tiltfile
+> is driven by `docker compose` directly (lane sets `-p <slug>`) and needs none
+> of this — just a `.lane.toml`.
+
 A project's Tiltfile, in its docker branch, must:
 1. **Accept `--docker`** — `config.define_bool("docker")` + `config.parse()`
    (lane always invokes `tilt up --host 0.0.0.0 --port N -- --docker`).

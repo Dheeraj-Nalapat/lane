@@ -92,9 +92,11 @@ lane down
 
 ## Onboarding a project (one-time)
 
-lane needs two small, **commit-once** additions to a project. It never modifies
-them at runtime — it only reads them and sets environment variables. (See
-"How it works" for why these can't be auto-injected.)
+A **plain docker-compose project needs only one file** — `.lane.toml` below.
+lane auto-detects the absence of a Tiltfile and drives `docker compose` directly
+(no shim). **Tilt projects** add a small, commit-once Tiltfile shim (step 2) to
+keep live-reload + the Tilt dashboard. lane never modifies these at runtime — it
+only reads them and sets environment variables.
 
 ### 1. `.lane.toml` (project root)
 
@@ -119,7 +121,12 @@ cd ~/projects/remind
 lane init
 ```
 
-### 2. Tiltfile shim (in the `--docker` branch)
+### 2. Tiltfile shim — **Tilt projects only**
+
+**Skip this entirely if your project has no Tiltfile** — lane runs `docker
+compose` directly (project name set via `-p <slug>`), so a plain compose project
+needs only the `.lane.toml` above. The steps below apply only when you use Tilt
+for live-reload + the Tilt dashboard.
 
 lane's only hook into a Tilt run is environment variables, so your Tiltfile must
 read them. In your Docker-mode branch, replace the single `docker_compose(...)`
@@ -186,7 +193,7 @@ export default defineConfig({
 
 | Command | What it does |
 |---|---|
-| `lane up [path]` | Bring a stack up: derive slug → generate override → ensure proxy → run `tilt up -- --docker`. **Foreground** by default; `-d/--detach` backgrounds it. |
+| `lane up [path]` | Bring a stack up: derive slug → generate override → ensure proxy → run the selected runner. **Tilt runner:** foreground by default, `-d/--detach` to background. **Compose runner:** always detached; `-d` is a no-op, `--build` forces an image rebuild. |
 | `lane down [path]` | Tear down the stack (`docker compose down`) and delete generated files. Repo left untouched. |
 | `lane ls` | Quick, scriptable table of running stacks: slug, URL, Tilt port, state, path. |
 | `lane view [--watch]` | Rich control panel: each stack → URLs → live Traefik routes (from the Traefik API). `--watch` live-refreshes. |
