@@ -11,15 +11,29 @@ import (
 func TestWaitReady_BecomesReady(t *testing.T) {
 	var n int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if atomic.AddInt32(&n, 1) < 2 {
-			w.WriteHeader(http.StatusBadGateway) // 502 first
-			return
+		// Realistic startup: no-route 404, then gateway 502, then served 200.
+		switch atomic.AddInt32(&n, 1) {
+		case 1:
+			w.WriteHeader(http.StatusNotFound)
+		case 2:
+			w.WriteHeader(http.StatusBadGateway)
+		default:
+			w.WriteHeader(http.StatusOK)
 		}
-		w.WriteHeader(http.StatusOK)
 	}))
 	defer srv.Close()
 	if err := WaitReady([]string{srv.URL}, 3*time.Second, srv.Client()); err != nil {
 		t.Fatalf("WaitReady: %v", err)
+	}
+}
+
+func TestWaitReady_404NotReady(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound) // always no-route → must NOT be "ready"
+	}))
+	defer srv.Close()
+	if err := WaitReady([]string{srv.URL}, 600*time.Millisecond, srv.Client()); err == nil {
+		t.Fatal("a persistent 404 (no route) must time out, not be treated ready")
 	}
 }
 
