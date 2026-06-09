@@ -12,6 +12,10 @@ reachable in the browser at a friendly `*.localhost` URL via one shared
 > Like lanes on a road, every stack runs in its own lane instead of colliding
 > on a shared port.
 
+> **New here?** Start with the [guides](docs/guide/README.md): a
+> [getting-started tutorial](docs/guide/getting-started.md) and per-project
+> recipes (compose, Tilt, frontend HMR).
+
 ---
 
 ## Why
