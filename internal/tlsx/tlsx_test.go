@@ -7,7 +7,7 @@ import (
 
 func TestCertNames(t *testing.T) {
 	got := strings.Join(CertNames(), " ")
-	want := "*.localhost *.*.localhost localhost"
+	want := "*.localhost localhost"
 	if got != want {
 		t.Fatalf("CertNames = %q, want %q", got, want)
 	}
@@ -15,7 +15,7 @@ func TestCertNames(t *testing.T) {
 
 func TestMkcertArgs(t *testing.T) {
 	got := strings.Join(mkcertArgs("/c/cert.pem", "/c/key.pem"), " ")
-	want := "-cert-file /c/cert.pem -key-file /c/key.pem *.localhost *.*.localhost localhost"
+	want := "-cert-file /c/cert.pem -key-file /c/key.pem *.localhost localhost"
 	if got != want {
 		t.Fatalf("mkcertArgs = %q, want %q", got, want)
 	}

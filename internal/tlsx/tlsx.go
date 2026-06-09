@@ -46,9 +46,12 @@ func CAPresent() bool {
 	return err == nil
 }
 
-// CertNames are the SANs lane requests for the wildcard cert.
+// CertNames are the SANs lane requests for the wildcard cert. mkcert does not
+// support multi-level wildcards, so this covers single-label hosts
+// (<slug>.localhost, tilt-<slug>.localhost). Nested hosts like
+// api.<slug>.localhost are not TLS-covered in v1.
 func CertNames() []string {
-	return []string{"*.localhost", "*.*.localhost", "localhost"}
+	return []string{"*.localhost", "localhost"}
 }
 
 func mkcertArgs(certPath, keyPath string) []string {
