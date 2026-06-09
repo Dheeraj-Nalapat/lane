@@ -12,5 +12,9 @@ archives:
     name_template: "lane_{{ .Os }}_{{ .Arch }}"
 checksum:
   name_template: "checksums.txt"
+release:
+  # Attach the installer so `…/releases/latest/download/install.sh` resolves.
+  extra_files:
+    - glob: install.sh
 # Homebrew publishing is deferred until a `Dheeraj-Nalapat/homebrew-lane` tap
 # exists. To enable later, add a `brews:` block pointing at that repo.
