@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dheerajnalapat/lane/internal/doctor"
+	"github.com/dheeraj-nalapat/lane/internal/doctor"
 	"github.com/spf13/cobra"
 )
 

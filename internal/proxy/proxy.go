@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
 )
 
 //go:embed traefik-compose.yml.tmpl

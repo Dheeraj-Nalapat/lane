@@ -184,7 +184,7 @@ package runner
 import (
 	"fmt"
 
-	"github.com/dheerajnalapat/lane/internal/override"
+	"github.com/dheeraj-nalapat/lane/internal/override"
 )
 
 // RunSpec is everything a runner needs to bring one stack up.
@@ -351,8 +351,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/tiltx"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/tiltx"
 )
 
 type tiltRunner struct{}
@@ -498,17 +498,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/compose"
-	"github.com/dheerajnalapat/lane/internal/dockerx"
-	"github.com/dheerajnalapat/lane/internal/gitx"
-	"github.com/dheerajnalapat/lane/internal/identity"
-	"github.com/dheerajnalapat/lane/internal/manifest"
-	"github.com/dheerajnalapat/lane/internal/override"
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/ports"
-	"github.com/dheerajnalapat/lane/internal/proxy"
-	"github.com/dheerajnalapat/lane/internal/runner"
-	"github.com/dheerajnalapat/lane/internal/slug"
+	"github.com/dheeraj-nalapat/lane/internal/compose"
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/gitx"
+	"github.com/dheeraj-nalapat/lane/internal/identity"
+	"github.com/dheeraj-nalapat/lane/internal/manifest"
+	"github.com/dheeraj-nalapat/lane/internal/override"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/ports"
+	"github.com/dheeraj-nalapat/lane/internal/proxy"
+	"github.com/dheeraj-nalapat/lane/internal/runner"
+	"github.com/dheeraj-nalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 

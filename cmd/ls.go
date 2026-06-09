@@ -5,7 +5,7 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 

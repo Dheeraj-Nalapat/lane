@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dheerajnalapat/lane/internal/stack"
+	"github.com/dheeraj-nalapat/lane/internal/stack"
 )
 
 type psLine struct {

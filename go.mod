@@ -1,4 +1,4 @@
-module github.com/dheerajnalapat/lane
+module github.com/dheeraj-nalapat/lane
 
 go 1.24.0
 

@@ -10,9 +10,9 @@ archives:
     name_template: "lane_{{ .Os }}_{{ .Arch }}"
 brews:
   - repository:
-      owner: dheerajnalapat        # adjust to real tap repo
+      owner: dheeraj-nalapat        # adjust to real tap repo
       name: homebrew-lane
-    homepage: "https://github.com/dheerajnalapat/lane"
+    homepage: "https://github.com/dheeraj-nalapat/lane"
     description: "Run many project stacks at once with zero port conflicts"
 checksum:
   name_template: "checksums.txt"

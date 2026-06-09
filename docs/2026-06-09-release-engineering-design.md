@@ -45,7 +45,7 @@ needs — all verified locally, nothing published.
 
 ### 1. Module-path correction (`dheerajnalapat` → `dheeraj-nalapat`)
 
-The repo currently uses the placeholder `github.com/dheerajnalapat/lane`. Update
+The repo currently uses the placeholder `github.com/dheeraj-nalapat/lane`. Update
 to the real username path everywhere:
 - `go.mod` module line
 - every Go import (`internal/...`, `cmd`, `main.go`)

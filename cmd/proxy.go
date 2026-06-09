@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/dheerajnalapat/lane/internal/proxy"
+	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/spf13/cobra"
 )
 

@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dheerajnalapat/lane/internal/gitx"
-	"github.com/dheerajnalapat/lane/internal/manifest"
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/slug"
+	"github.com/dheeraj-nalapat/lane/internal/gitx"
+	"github.com/dheeraj-nalapat/lane/internal/manifest"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 

@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/tiltx"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/tiltx"
 )
 
 type tiltRunner struct{}

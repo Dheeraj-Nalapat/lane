@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/scaffold"
+	"github.com/dheeraj-nalapat/lane/internal/scaffold"
 	"github.com/spf13/cobra"
 )
 

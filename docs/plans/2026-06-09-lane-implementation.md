@@ -14,7 +14,7 @@
 
 ```
 lane/
-  go.mod                          module github.com/dheerajnalapat/lane (adjust to real repo path)
+  go.mod                          module github.com/dheeraj-nalapat/lane (adjust to real repo path)
   main.go                         entrypoint → cmd.Execute()
   cmd/
     root.go                       root cobra command + global flags (--slug, --dry-run, -v)
@@ -63,7 +63,7 @@ lane/
 
 Run from `lane/`:
 ```bash
-go mod init github.com/dheerajnalapat/lane   # adjust to the real GitHub path you'll publish under
+go mod init github.com/dheeraj-nalapat/lane   # adjust to the real GitHub path you'll publish under
 go get github.com/spf13/cobra@latest
 ```
 Expected: `go.mod` created with a `require github.com/spf13/cobra` line.
@@ -142,7 +142,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dheerajnalapat/lane/cmd"
+	"github.com/dheeraj-nalapat/lane/cmd"
 )
 
 func main() {
@@ -1152,7 +1152,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
 )
 
 //go:embed traefik-compose.yml.tmpl
@@ -1266,7 +1266,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/dheerajnalapat/lane/internal/proxy"
+	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/spf13/cobra"
 )
 
@@ -1488,17 +1488,17 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/compose"
-	"github.com/dheerajnalapat/lane/internal/dockerx"
-	"github.com/dheerajnalapat/lane/internal/gitx"
-	"github.com/dheerajnalapat/lane/internal/identity"
-	"github.com/dheerajnalapat/lane/internal/manifest"
-	"github.com/dheerajnalapat/lane/internal/override"
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/ports"
-	"github.com/dheerajnalapat/lane/internal/proxy"
-	"github.com/dheerajnalapat/lane/internal/slug"
-	"github.com/dheerajnalapat/lane/internal/tiltx"
+	"github.com/dheeraj-nalapat/lane/internal/compose"
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/gitx"
+	"github.com/dheeraj-nalapat/lane/internal/identity"
+	"github.com/dheeraj-nalapat/lane/internal/manifest"
+	"github.com/dheeraj-nalapat/lane/internal/override"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/ports"
+	"github.com/dheeraj-nalapat/lane/internal/proxy"
+	"github.com/dheeraj-nalapat/lane/internal/slug"
+	"github.com/dheeraj-nalapat/lane/internal/tiltx"
 	"github.com/spf13/cobra"
 )
 
@@ -1725,7 +1725,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dheerajnalapat/lane/internal/stack"
+	"github.com/dheeraj-nalapat/lane/internal/stack"
 )
 
 type psLine struct {
@@ -1844,10 +1844,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/dheerajnalapat/lane/internal/gitx"
-	"github.com/dheerajnalapat/lane/internal/manifest"
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/slug"
+	"github.com/dheeraj-nalapat/lane/internal/gitx"
+	"github.com/dheeraj-nalapat/lane/internal/manifest"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 
@@ -1932,7 +1932,7 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 
@@ -2101,8 +2101,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/dheerajnalapat/lane/internal/stack"
-	"github.com/dheerajnalapat/lane/internal/traefikapi"
+	"github.com/dheeraj-nalapat/lane/internal/stack"
+	"github.com/dheeraj-nalapat/lane/internal/traefikapi"
 )
 
 var (
@@ -2161,8 +2161,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dheerajnalapat/lane/internal/stack"
-	"github.com/dheerajnalapat/lane/internal/traefikapi"
+	"github.com/dheeraj-nalapat/lane/internal/stack"
+	"github.com/dheeraj-nalapat/lane/internal/traefikapi"
 )
 
 func TestRender(t *testing.T) {
@@ -2196,9 +2196,9 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dheerajnalapat/lane/internal/dockerx"
-	"github.com/dheerajnalapat/lane/internal/traefikapi"
-	"github.com/dheerajnalapat/lane/internal/ui"
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/traefikapi"
+	"github.com/dheeraj-nalapat/lane/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -2396,7 +2396,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dheerajnalapat/lane/internal/doctor"
+	"github.com/dheeraj-nalapat/lane/internal/doctor"
 	"github.com/spf13/cobra"
 )
 
@@ -2587,7 +2587,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/scaffold"
+	"github.com/dheeraj-nalapat/lane/internal/scaffold"
 	"github.com/spf13/cobra"
 )
 
@@ -2669,7 +2669,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 
@@ -2714,10 +2714,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/lane/internal/gitx"
-	"github.com/dheerajnalapat/lane/internal/manifest"
-	"github.com/dheerajnalapat/lane/internal/paths"
-	"github.com/dheerajnalapat/lane/internal/slug"
+	"github.com/dheeraj-nalapat/lane/internal/gitx"
+	"github.com/dheeraj-nalapat/lane/internal/manifest"
+	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 
@@ -2949,7 +2949,7 @@ brews:
   - repository:
       owner: dheerajnalapat        # adjust to real tap repo
       name: homebrew-lane
-    homepage: "https://github.com/dheerajnalapat/lane"
+    homepage: "https://github.com/dheeraj-nalapat/lane"
     description: "Run many project stacks at once with zero port conflicts"
 checksum:
   name_template: "checksums.txt"
@@ -2961,7 +2961,7 @@ checksum:
 ```bash
 #!/usr/bin/env sh
 set -e
-REPO="dheerajnalapat/lane"   # adjust
+REPO="dheeraj-nalapat/lane"   # adjust
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m); [ "$ARCH" = "x86_64" ] && ARCH=amd64; [ "$ARCH" = "aarch64" ] && ARCH=arm64
 URL="https://github.com/$REPO/releases/latest/download/lane_${OS}_${ARCH}.tar.gz"

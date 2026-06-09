@@ -39,7 +39,7 @@ for end users; local dev uses the one build command.)
 
 ### Editor / module
 
-- Module path: `github.com/dheerajnalapat/lane` (in `go.mod`). **Change this to
+- Module path: `github.com/dheeraj-nalapat/lane` (in `go.mod`). **Change this to
   your real GitHub path before publishing** — it appears in every internal import
   and in `.goreleaser.yaml` / `install.sh`. A repo-wide find/replace of the module
   string is enough.

@@ -40,14 +40,14 @@ Run from the repo root:
 ```bash
 git ls-files | while read -r f; do
   case "$f" in
-    *.go|*.mod|*.yaml|*.yml|*.sh|*.md|*.toml) sed -i 's#dheerajnalapat/lane#dheeraj-nalapat/lane#g' "$f" ;;
+    *.go|*.mod|*.yaml|*.yml|*.sh|*.md|*.toml) sed -i 's#dheeraj-nalapat/lane#dheeraj-nalapat/lane#g' "$f" ;;
   esac
 done
 # .goreleaser.yaml's Homebrew tap owner is a BARE name (no /lane), so patch it separately:
 sed -i 's/owner: dheerajnalapat$/owner: dheeraj-nalapat/' .goreleaser.yaml
 ```
 
-> The path replace is scoped to `dheerajnalapat/lane` (not bare `dheerajnalapat`)
+> The path replace is scoped to `dheeraj-nalapat/lane` (not bare `dheerajnalapat`)
 > so it cannot corrupt home-dir paths like `/home/dheerajnalapat/project/...` in
 > the docs. The bare `owner:` line is handled by the second `sed`.
 
@@ -56,7 +56,7 @@ sed -i 's/owner: dheerajnalapat$/owner: dheeraj-nalapat/' .goreleaser.yaml
 Run:
 ```bash
 head -1 go.mod
-git ls-files | xargs grep -nI 'dheerajnalapat/lane' 2>/dev/null | wc -l
+git ls-files | xargs grep -nI 'dheeraj-nalapat/lane' 2>/dev/null | wc -l
 ```
 Expected: `module github.com/dheeraj-nalapat/lane`; residual count `0`.
 
@@ -371,7 +371,7 @@ Expected: gofmt empty; vet/test pass; snapshot build succeeds with `lane` binari
 
 Run:
 ```bash
-git ls-files | xargs grep -nI 'dheerajnalapat/lane' 2>/dev/null | wc -l   # 0
+git ls-files | xargs grep -nI 'dheeraj-nalapat/lane' 2>/dev/null | wc -l   # 0
 grep -n 'owner: dheerajnalapat$' .goreleaser.yaml | wc -l                  # 0 (bare owner fixed)
 git remote -v                                                              # empty (prepare-only)
 ```

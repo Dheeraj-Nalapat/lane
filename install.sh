@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 set -e
-REPO="dheerajnalapat/lane"   # adjust
+REPO="dheeraj-nalapat/lane"   # adjust
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m); [ "$ARCH" = "x86_64" ] && ARCH=amd64; [ "$ARCH" = "aarch64" ] && ARCH=arm64
 URL="https://github.com/$REPO/releases/latest/download/lane_${OS}_${ARCH}.tar.gz"

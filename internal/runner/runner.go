@@ -4,7 +4,7 @@ package runner
 import (
 	"fmt"
 
-	"github.com/dheerajnalapat/lane/internal/override"
+	"github.com/dheeraj-nalapat/lane/internal/override"
 )
 
 // RunSpec is everything a runner needs to bring one stack up.
