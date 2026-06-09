@@ -10,16 +10,20 @@
 ██║     ██╔══██║██║╚██╗██║██╔══╝       proxy ● up    tls ○ off
 ███████╗██║  ██║██║ ╚████║███████╗
 ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
-──────────────────────────────────┬───────────────────────
-<span class="g">▸ remind</span>        ● running        │ remind  →  http://remind.localhost
-  demo          ● running        │   ✓ remind.localhost → remind-ui
-                                  │   ✓ tilt-remind.localhost → tilt
+─────────────────────────────────┬────────────────────────
+<span class="g">▸ remind</span>          ● running     │ remind  →  http://remind.localhost
+  remind-featx    ● running     │ remind-featx → http://remind-featx.localhost
+  checkout-api    ● running     │ a 3rd worktree, same repo, no conflict
 ──────────────────────────────────┴───────────────────────
- ↑/↓ select  o open  l logs  r restart  x down  q quit</code></pre>
+ ↑/↓ select   o open   l logs   r restart   x down   q quit</code></pre>
   </div>
-  <p class="lane-tag">Parallel, port-conflict-free dev stacks.</p>
-  <p class="lane-sub">Run many projects — and many git worktrees of one project —
-     at once. Each gets an isolated stack at a friendly <code>*.localhost</code> URL.</p>
+
+  <h1 class="lane-headline">Run every version of your project — at once.</h1>
+  <p class="lane-tag">Give each git worktree (or project) its own isolated,
+     port-conflict-free stack at a friendly <code>*.localhost</code> URL — so you
+     <strong>and your AI agents</strong> can spin up and test many versions in
+     parallel, and ship faster.</p>
+
   <div class="lane-cta">
     <a class="md-button md-button--primary" href="getting-started/">Get started</a>
     <a class="md-button" href="install/">Install</a>
@@ -30,20 +34,29 @@
 </section>
 
 <section class="lane-cards">
-  <div class="lane-card"><h3>Run many at once</h3><p>No host ports published — a shared proxy routes by hostname, so stacks never collide.</p></div>
-  <div class="lane-card"><h3>Friendly URLs</h3><p>Each stack at <code>&lt;slug&gt;.localhost</code>; worktrees get distinct slugs automatically.</p></div>
-  <div class="lane-card"><h3>Agent-drivable</h3><p><code>lane up --wait --json</code> — machine-readable, race-safe parallel testing for Claude/Cursor.</p></div>
+  <div class="lane-card"><h3>No port conflicts</h3><p>Stacks publish <em>zero</em> host ports — a shared proxy routes by hostname, so any number run side by side.</p></div>
+  <div class="lane-card"><h3>Parallel by design</h3><p>N git worktrees → N live stacks at distinct <code>&lt;slug&gt;.localhost</code> URLs, all up at the same time.</p></div>
+  <div class="lane-card"><h3>Built for agents</h3><p>One agent per worktree: <code>lane up --wait --json</code> → test → <code>lane down</code>. Race-safe, machine-readable.</p></div>
 </section>
 
-<section class="lane-showcase">
+<section class="lane-pitch">
+  <h2>Let your agents test in parallel</h2>
+  <p class="lane-pitch-lead">Reviewing three pull requests? Pit two implementations
+     of the same feature against each other? Running a whole fleet of coding
+     agents? Check out each version into its own worktree and bring it up — lane
+     keeps every stack isolated, so agents test concurrently instead of waiting in
+     line for a port. <strong>More parallelism, faster iteration.</strong></p>
+
   <div class="lane-term">
-    <div class="lane-term-bar"><span></span><span></span><span></span><i>lane up --wait --json</i></div>
-    <pre><code>{
-  "slug": "demo",
+    <div class="lane-term-bar"><span></span><span></span><span></span><i>agent loop, per worktree</i></div>
+<pre><code><span class="dim">$</span> lane up --wait --json
+{
+  "slug": "remind-featx",
   "runner": "compose",
-  "tls": false,
-  "urls": [{ "service": "web", "host": "demo.localhost", "url": "http://demo.localhost" }]
-}</code></pre>
+  "urls": [{ "service": "web", "url": "http://remind-featx.localhost" }]
+}
+<span class="dim"># ...the agent runs its tests against that URL...</span>
+<span class="dim">$</span> lane down</code></pre>
   </div>
 </section>
 {% endblock %}

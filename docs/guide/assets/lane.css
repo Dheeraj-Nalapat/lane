@@ -1,9 +1,17 @@
 .lane-hero { text-align: center; padding: 2.5rem 1rem 2rem; }
-.lane-hero-term { max-width: 44rem; margin: 0 auto 1.5rem; text-align: left; }
+/* size the terminal to its ASCII content; scroll (not clip) on narrow screens */
+.lane-hero-term { width: fit-content; max-width: 100%; margin: 0 auto 1.75rem; text-align: left; }
+.lane-headline { font-size: 2.4rem; font-weight: 800; line-height: 1.15; margin: .5rem auto;
+  max-width: 32rem; color: var(--md-primary-fg-color); }
 .lane-name { font-size: 4rem; font-weight: 800; letter-spacing: .08em; margin: 0;
   color: var(--md-primary-fg-color); }
-.lane-tag { font-size: 1.4rem; font-weight: 600; margin: .25rem 0 .75rem; }
+.lane-tag { font-size: 1.1rem; max-width: 44rem; margin: .25rem auto 1.25rem; opacity: .9; }
 .lane-sub { max-width: 40rem; margin: 0 auto 1.5rem; opacity: .85; }
+
+.lane-pitch { max-width: 60rem; margin: 1rem auto 3rem; padding: 0 1rem; }
+.lane-pitch h2 { font-size: 1.8rem; margin-bottom: .5rem; }
+.lane-pitch-lead { font-size: 1.05rem; opacity: .9; max-width: 50rem; margin: 0 0 1.5rem; }
+.lane-term .dim { color: #6e7681; }
 .lane-cta { display: flex; gap: .75rem; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
 .lane-install { display: inline-block; max-width: 100%; overflow-x: auto; }
 .lane-install code { padding: .5rem 1rem; white-space: pre; }
