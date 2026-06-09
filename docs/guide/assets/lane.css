@@ -2,8 +2,9 @@
 .lane-hero > *:not(.lane-bg) { position: relative; z-index: 1; }
 
 /* subtle animated git-graph behind the hero: branches grow, hold, fade, respawn */
-.lane-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  color: var(--md-primary-fg-color); opacity: .14; }
+/* anchored to the lower part of the hero so the lane view panel doesn't cover it */
+.lane-bg { position: absolute; left: 0; right: 0; bottom: 0; top: 42%; z-index: 0;
+  pointer-events: none; color: var(--md-primary-fg-color); opacity: .14; }
 .lane-bg svg { width: 100%; height: 100%; display: block; }
 .lane-branch { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
   stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0;
