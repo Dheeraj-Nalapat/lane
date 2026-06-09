@@ -1,11 +1,13 @@
 .lane-hero { text-align: center; padding: 2.5rem 1rem 2rem; }
 /* size the terminal to its ASCII content; scroll (not clip) on narrow screens */
 .lane-hero-term { width: fit-content; max-width: 100%; margin: 0 auto 1.75rem; text-align: left; }
-.lane-headline { font-size: 2.4rem; font-weight: 800; line-height: 1.15; margin: .5rem auto;
-  max-width: 32rem; color: var(--md-primary-fg-color); }
+/* scoped under .lane-hero so it outranks Material's `.md-typeset h1` margin reset */
+.lane-hero .lane-headline { font-size: 2.4rem; font-weight: 800; line-height: 1.15;
+  margin: .5rem auto; max-width: 34rem; text-wrap: balance;
+  color: var(--md-primary-fg-color); }
 .lane-name { font-size: 4rem; font-weight: 800; letter-spacing: .08em; margin: 0;
   color: var(--md-primary-fg-color); }
-.lane-tag { font-size: 1.1rem; max-width: 44rem; margin: .25rem auto 1.25rem; opacity: .9; }
+.lane-tag { font-size: .95rem; max-width: 38rem; margin: .25rem auto 1.25rem; opacity: .85; line-height: 1.5; }
 .lane-sub { max-width: 40rem; margin: 0 auto 1.5rem; opacity: .85; }
 
 .lane-pitch { max-width: 60rem; margin: 1rem auto 3rem; padding: 0 1rem; }
