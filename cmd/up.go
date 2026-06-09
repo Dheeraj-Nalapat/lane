@@ -16,6 +16,7 @@ import (
 	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/dheeraj-nalapat/lane/internal/runner"
 	"github.com/dheeraj-nalapat/lane/internal/slug"
+	"github.com/dheeraj-nalapat/lane/internal/tlsx"
 	"github.com/spf13/cobra"
 )
 
@@ -91,9 +92,10 @@ func runUp(cmd *cobra.Command, args []string) error {
 		})
 	}
 
+	tlsOn := tlsx.Enabled()
 	body, err := override.Generate(override.Spec{
 		Slug: sl, ProjectPath: dir, Network: proxy.Network,
-		Services: svcs, Routes: routes, TiltPort: tiltPort,
+		Services: svcs, Routes: routes, TiltPort: tiltPort, TLS: tlsOn,
 	})
 	if err != nil {
 		return err
@@ -117,7 +119,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 	spec := runner.RunSpec{
 		Slug: sl, Dir: dir, ComposePath: composePath, OverridePath: overridePath,
 		Routes: routes, Detach: flagDetach, Build: flagBuild,
-		TiltPort: tiltPort, DynamicPath: dynamicPath, Env: env,
+		TiltPort: tiltPort, DynamicPath: dynamicPath, Env: env, TLS: tlsOn,
 	}
 	r := runner.New(runnerName)
 
