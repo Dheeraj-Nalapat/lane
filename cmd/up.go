@@ -13,6 +13,7 @@ import (
 	"github.com/dheeraj-nalapat/lane/internal/override"
 	"github.com/dheeraj-nalapat/lane/internal/paths"
 	"github.com/dheeraj-nalapat/lane/internal/ports"
+	"github.com/dheeraj-nalapat/lane/internal/preflight"
 	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/dheeraj-nalapat/lane/internal/runner"
 	"github.com/dheeraj-nalapat/lane/internal/slug"
@@ -48,6 +49,13 @@ func runUp(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	if err := preflight.DockerRunning(); err != nil {
+		return err
+	}
+	if err := preflight.ComposeReady(); err != nil {
+		return err
+	}
+
 	m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 	if err != nil {
 		return err
@@ -62,12 +70,20 @@ func runUp(cmd *cobra.Command, args []string) error {
 		ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir),
 	})
 
-	if claimed, ok := dockerx.SlugOwner(sl); ok && claimed != dir {
+	if claimed, ok := dockerx.SlugOwner(sl); ok {
+		if claimed == dir {
+			fmt.Printf("stack %q already running — use `lane restart` to recreate, or `lane down` to stop\n", sl)
+			return nil
+		}
 		return fmt.Errorf("slug %q already in use by stack at %s; pass --slug to disambiguate", sl, claimed)
 	}
 
 	composePath := filepath.Join(dir, m.ComposeFile)
 	svcs, err := compose.ServiceNames(composePath)
+	if err != nil {
+		return err
+	}
+	built, err := compose.BuiltServices(composePath)
 	if err != nil {
 		return err
 	}
@@ -96,6 +112,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 	body, err := override.Generate(override.Spec{
 		Slug: sl, ProjectPath: dir, Network: proxy.Network,
 		Services: svcs, Routes: routes, TiltPort: tiltPort, TLS: tlsOn,
+		BuiltServices: built,
 	})
 	if err != nil {
 		return err
