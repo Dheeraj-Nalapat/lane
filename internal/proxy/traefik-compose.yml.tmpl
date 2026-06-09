@@ -9,6 +9,9 @@ services:
       - --providers.file.directory=/dynamic
       - --providers.file.watch=true
       - --entryPoints.web.address=:80
+{{- if .TLS}}
+      - --entryPoints.websecure.address=:443
+{{- end}}
       - --api.dashboard=true
       - --api.insecure=true
     labels:
@@ -16,12 +19,18 @@ services:
       - lane.proxy=true
     ports:
       - "80:80"
+{{- if .TLS}}
+      - "443:443"
+{{- end}}
       - "127.0.0.1:8080:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - {{.DynamicDir}}:/dynamic:ro
+{{- if .TLS}}
+      - {{.CertsDir}}:/certs:ro
+{{- end}}
     networks:
       - {{.Network}}
     restart: unless-stopped

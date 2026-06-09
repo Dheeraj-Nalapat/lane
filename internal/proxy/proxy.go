@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/tlsx"
 )
 
 //go:embed traefik-compose.yml.tmpl
@@ -19,13 +20,15 @@ var composeTmpl string
 // Network is the shared external Docker network name.
 const Network = "lane"
 
-func renderCompose(network, dynamicDir string) ([]byte, error) {
+func renderCompose(network, dynamicDir, certsDir string, tls bool) ([]byte, error) {
 	t, err := template.New("c").Parse(composeTmpl)
 	if err != nil {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	err = t.Execute(&buf, map[string]string{"Network": network, "DynamicDir": dynamicDir})
+	err = t.Execute(&buf, map[string]any{
+		"Network": network, "DynamicDir": dynamicDir, "CertsDir": certsDir, "TLS": tls,
+	})
 	return buf.Bytes(), err
 }
 
@@ -52,7 +55,7 @@ func Up() error {
 	if err := ensureNetwork(); err != nil {
 		return err
 	}
-	body, err := renderCompose(Network, paths.TraefikDynamic())
+	body, err := renderCompose(Network, paths.TraefikDynamic(), paths.TraefikCerts(), tlsx.Enabled())
 	if err != nil {
 		return err
 	}
