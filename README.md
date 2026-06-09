@@ -212,6 +212,24 @@ happen and exit — great for inspecting the generated override), `-v/--verbose`
 
 ---
 
+## HTTPS (optional)
+
+lane serves plain HTTP by default. To get trusted `https://<slug>.localhost`
+(for secure cookies / HTTPS-only APIs), install [mkcert](https://github.com/FiloSottile/mkcert),
+set up its CA once, then enable TLS:
+
+```bash
+mkcert -install        # one-time; adds a local CA to your trust store
+lane tls enable        # generates a wildcard cert, restarts the proxy on :443
+lane up                # (re-up running stacks to add their HTTPS route)
+```
+
+Both `http://` and `https://` then serve every stack. `lane tls status` shows
+the current state; `lane tls disable` returns to HTTP-only. mkcert is **not**
+required for normal (HTTP) use — only to enable HTTPS.
+
+---
+
 ## How the URL / slug is chosen
 
 Everything (hostname, `COMPOSE_PROJECT_NAME`, Tilt port) derives from one

@@ -20,3 +20,6 @@ to follow [Semantic Versioning](https://semver.org/).
   `doctor`, `init`, `open`, `logs`; global `--slug`, `--dry-run`.
 - Cross-platform static binaries via GoReleaser (linux/darwin/windows ×
   amd64/arm64).
+- Optional HTTPS: `lane tls enable|disable|status` serves trusted
+  `https://*.localhost` via mkcert (alongside HTTP; no redirect). mkcert is not
+  a hard dependency.
