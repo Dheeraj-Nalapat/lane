@@ -1,0 +1,28 @@
+.lane-hero { text-align: center; padding: 3.5rem 1rem 2rem; }
+.lane-name { font-size: 4rem; font-weight: 800; letter-spacing: .08em; margin: 0;
+  color: var(--md-primary-fg-color); }
+.lane-tag { font-size: 1.4rem; font-weight: 600; margin: .25rem 0 .75rem; }
+.lane-sub { max-width: 40rem; margin: 0 auto 1.5rem; opacity: .85; }
+.lane-cta { display: flex; gap: .75rem; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.lane-install { display: inline-block; }
+.lane-install code { padding: .5rem 1rem; }
+
+.lane-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem; max-width: 60rem; margin: 1rem auto 2.5rem; padding: 0 1rem; }
+.lane-card { border: 1px solid var(--md-default-fg-color--lightest); border-radius: .6rem;
+  padding: 1rem 1.2rem; }
+.lane-card h3 { margin: 0 0 .4rem; }
+
+.lane-showcase { display: grid; gap: 1.25rem; max-width: 60rem; margin: 0 auto 3rem; padding: 0 1rem; }
+.lane-term { background: #0d1117; border-radius: .6rem; overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+.lane-term-bar { display: flex; align-items: center; gap: .4rem; padding: .5rem .8rem;
+  background: #161b22; }
+.lane-term-bar span { width: 12px; height: 12px; border-radius: 50%; background: #3a4250; }
+.lane-term-bar span:nth-child(1) { background: #ff5f56; }
+.lane-term-bar span:nth-child(2) { background: #ffbd2e; }
+.lane-term-bar span:nth-child(3) { background: #27c93f; }
+.lane-term-bar i { margin-left: .6rem; color: #8b949e; font-style: normal; font-size: .8rem; }
+.lane-term pre { margin: 0; padding: 1rem; background: #0d1117; color: #c9d1d9; overflow-x: auto; }
+.lane-term code { color: inherit; background: none; font-size: .82rem; line-height: 1.4; }
+.lane-term .g { color: #3fb950; font-weight: 700; }

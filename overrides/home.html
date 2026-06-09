@@ -1,0 +1,49 @@
+{% extends "main.html" %}
+
+{% block content %}
+<section class="lane-hero">
+  <h1 class="lane-name">lane</h1>
+  <p class="lane-tag">Parallel, port-conflict-free dev stacks.</p>
+  <p class="lane-sub">Run many projects — and many git worktrees of one project —
+     at once. Each gets an isolated stack at a friendly <code>*.localhost</code> URL.</p>
+  <div class="lane-cta">
+    <a class="md-button md-button--primary" href="getting-started/">Get started</a>
+    <a class="md-button" href="https://github.com/Dheeraj-Nalapat/lane">GitHub</a>
+  </div>
+  <pre class="lane-install"><code>brew install Dheeraj-Nalapat/lane/lane</code></pre>
+</section>
+
+<section class="lane-cards">
+  <div class="lane-card"><h3>Run many at once</h3><p>No host ports published — a shared proxy routes by hostname, so stacks never collide.</p></div>
+  <div class="lane-card"><h3>Friendly URLs</h3><p>Each stack at <code>&lt;slug&gt;.localhost</code>; worktrees get distinct slugs automatically.</p></div>
+  <div class="lane-card"><h3>Agent-drivable</h3><p><code>lane up --wait --json</code> — machine-readable, race-safe parallel testing for Claude/Cursor.</p></div>
+</section>
+
+<section class="lane-showcase">
+  <div class="lane-term">
+    <div class="lane-term-bar"><span></span><span></span><span></span><i>lane up --wait --json</i></div>
+    <pre><code>{
+  "slug": "demo",
+  "runner": "compose",
+  "tls": false,
+  "urls": [{ "service": "web", "host": "demo.localhost", "url": "http://demo.localhost" }]
+}</code></pre>
+  </div>
+
+  <div class="lane-term">
+    <div class="lane-term-bar"><span></span><span></span><span></span><i>lane view</i></div>
+<pre><code>██╗      █████╗ ███╗   ██╗███████╗
+██║     ██╔══██╗████╗  ██║██╔════╝     🏁  parallel dev stacks
+██║     ███████║██╔██╗ ██║█████╗
+██║     ██╔══██║██║╚██╗██║██╔══╝       proxy ● up    tls ○ off
+███████╗██║  ██║██║ ╚████║███████╗
+╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
+──────────────────────────────────┬───────────────────────
+<span class="g">▸ remind</span>        ● running        │ remind  →  http://remind.localhost
+  demo          ● running        │   ✓ remind.localhost → remind-ui
+                                  │   ✓ tilt-remind.localhost → tilt
+──────────────────────────────────┴───────────────────────
+ ↑/↓ select  o open  l logs  r restart  x down  q quit</code></pre>
+  </div>
+</section>
+{% endblock %}
