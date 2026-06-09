@@ -24,7 +24,7 @@ func TestRenderDynamic(t *testing.T) {
 
 func TestUpArgs(t *testing.T) {
 	got := UpArgs(10377)
-	want := []string{"up", "--", "--docker", "--port", "10377"}
+	want := []string{"up", "--host", "0.0.0.0", "--port", "10377", "--", "--docker"}
 	if strings.Join(got, " ") != strings.Join(want, " ") {
 		t.Fatalf("UpArgs = %v, want %v", got, want)
 	}

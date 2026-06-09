@@ -34,6 +34,10 @@ func RenderDynamicRoute(slug string, port int) ([]byte, error) {
 }
 
 // UpArgs returns the args for `tilt up` in berth's docker mode on a given port.
+// Tilt's own flags (--host, --port) must come BEFORE the `--` separator;
+// everything after `--` is passed to the Tiltfile's config.parse (here just
+// --docker). --host 0.0.0.0 is required so the Tilt UI is reachable from the
+// Traefik container via host.docker.internal (Tilt binds localhost by default).
 func UpArgs(port int) []string {
-	return []string{"up", "--", "--docker", "--port", strconv.Itoa(port)}
+	return []string{"up", "--host", "0.0.0.0", "--port", strconv.Itoa(port), "--", "--docker"}
 }
