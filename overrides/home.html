@@ -2,7 +2,21 @@
 
 {% block content %}
 <section class="lane-hero">
-  <h1 class="lane-name">lane</h1>
+  <div class="lane-term lane-hero-term">
+    <div class="lane-term-bar"><span></span><span></span><span></span><i>lane view</i></div>
+<pre><code>██╗      █████╗ ███╗   ██╗███████╗
+██║     ██╔══██╗████╗  ██║██╔════╝     🏁  parallel dev stacks
+██║     ███████║██╔██╗ ██║█████╗
+██║     ██╔══██║██║╚██╗██║██╔══╝       proxy ● up    tls ○ off
+███████╗██║  ██║██║ ╚████║███████╗
+╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
+──────────────────────────────────┬───────────────────────
+<span class="g">▸ remind</span>        ● running        │ remind  →  http://remind.localhost
+  demo          ● running        │   ✓ remind.localhost → remind-ui
+                                  │   ✓ tilt-remind.localhost → tilt
+──────────────────────────────────┴───────────────────────
+ ↑/↓ select  o open  l logs  r restart  x down  q quit</code></pre>
+  </div>
   <p class="lane-tag">Parallel, port-conflict-free dev stacks.</p>
   <p class="lane-sub">Run many projects — and many git worktrees of one project —
      at once. Each gets an isolated stack at a friendly <code>*.localhost</code> URL.</p>
@@ -30,22 +44,6 @@
   "tls": false,
   "urls": [{ "service": "web", "host": "demo.localhost", "url": "http://demo.localhost" }]
 }</code></pre>
-  </div>
-
-  <div class="lane-term">
-    <div class="lane-term-bar"><span></span><span></span><span></span><i>lane view</i></div>
-<pre><code>██╗      █████╗ ███╗   ██╗███████╗
-██║     ██╔══██╗████╗  ██║██╔════╝     🏁  parallel dev stacks
-██║     ███████║██╔██╗ ██║█████╗
-██║     ██╔══██║██║╚██╗██║██╔══╝       proxy ● up    tls ○ off
-███████╗██║  ██║██║ ╚████║███████╗
-╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
-──────────────────────────────────┬───────────────────────
-<span class="g">▸ remind</span>        ● running        │ remind  →  http://remind.localhost
-  demo          ● running        │   ✓ remind.localhost → remind-ui
-                                  │   ✓ tilt-remind.localhost → tilt
-──────────────────────────────────┴───────────────────────
- ↑/↓ select  o open  l logs  r restart  x down  q quit</code></pre>
   </div>
 </section>
 {% endblock %}
