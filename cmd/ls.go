@@ -1,13 +1,17 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"text/tabwriter"
 
 	"github.com/dheeraj-nalapat/lane/internal/dockerx"
+	"github.com/dheeraj-nalapat/lane/internal/stack"
 	"github.com/spf13/cobra"
 )
+
+var flagLsJSON bool
 
 var lsCmd = &cobra.Command{
 	Use:   "ls",
@@ -16,6 +20,17 @@ var lsCmd = &cobra.Command{
 		stacks, err := dockerx.List()
 		if err != nil {
 			return err
+		}
+		if flagLsJSON {
+			if stacks == nil {
+				stacks = []stack.Stack{} // marshal [] not null
+			}
+			b, err := json.MarshalIndent(stacks, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(b))
+			return nil
 		}
 		w := tabwriter.NewWriter(os.Stdout, 0, 2, 2, ' ', 0)
 		fmt.Fprintln(w, "SLUG\tURL\tTILT\tSTATE\tPATH")
@@ -34,4 +49,7 @@ var lsCmd = &cobra.Command{
 	},
 }
 
-func init() { root.AddCommand(lsCmd) }
+func init() {
+	lsCmd.Flags().BoolVar(&flagLsJSON, "json", false, "output as JSON")
+	root.AddCommand(lsCmd)
+}
