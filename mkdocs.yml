@@ -1,0 +1,43 @@
+site_name: lane
+site_description: Parallel, port-conflict-free dev stacks.
+site_url: https://dheeraj-nalapat.github.io/lane/
+repo_url: https://github.com/Dheeraj-Nalapat/lane
+docs_dir: docs/guide
+exclude_docs: |
+  README.md
+theme:
+  name: material
+  custom_dir: overrides
+  palette:
+    - scheme: default
+      primary: cyan
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - scheme: slate
+      primary: cyan
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+  features:
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+extra_css:
+  - assets/lane.css
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Recipes:
+    - Plain compose: recipes/compose.md
+    - Tilt: recipes/tilt.md
+    - Frontend HMR: recipes/frontend-hmr.md
+  - HTTPS: https.md
+  - Agents: agents.md
+  - Command reference: commands.md
