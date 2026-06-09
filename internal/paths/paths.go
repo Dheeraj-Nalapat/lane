@@ -19,10 +19,11 @@ func Overrides() string      { return filepath.Join(Home(), "overrides") }
 func Run() string            { return filepath.Join(Home(), "run") }
 func Traefik() string        { return filepath.Join(Home(), "traefik") }
 func TraefikDynamic() string { return filepath.Join(Traefik(), "dynamic") }
+func TraefikCerts() string   { return filepath.Join(Traefik(), "certs") }
 
 // Ensure creates all lane directories if missing.
 func Ensure() error {
-	for _, d := range []string{Overrides(), Run(), TraefikDynamic()} {
+	for _, d := range []string{Overrides(), Run(), TraefikDynamic(), TraefikCerts()} {
 		if err := os.MkdirAll(d, 0o755); err != nil {
 			return err
 		}

@@ -19,4 +19,7 @@ func TestPaths(t *testing.T) {
 	if !strings.HasSuffix(TraefikDynamic(), "/traefik/dynamic") {
 		t.Fatalf("TraefikDynamic = %q", TraefikDynamic())
 	}
+	if !strings.HasSuffix(TraefikCerts(), "/traefik/certs") {
+		t.Fatalf("TraefikCerts = %q", TraefikCerts())
+	}
 }
