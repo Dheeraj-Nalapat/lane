@@ -1,0 +1,15 @@
+---
+description: Use lane to run/test stacks in parallel across git worktrees (isolated, no port conflicts).
+alwaysApply: false
+---
+
+When you need to run or test this project (especially across multiple git
+worktrees in parallel), use `lane`:
+
+- `lane up --wait --json` — bring up an isolated stack for the current worktree,
+  wait until it serves, and print `{slug, urls[]}` JSON (human logs on stderr).
+- Test against the returned `url` (e.g. `http://<slug>.localhost`).
+- `lane down` — tear the stack down.
+- `lane ls --json` — list running stacks. Exit 0 = ok, 1 = error.
+
+Each worktree gets its own slug/URL, so parallel agents never collide on ports.

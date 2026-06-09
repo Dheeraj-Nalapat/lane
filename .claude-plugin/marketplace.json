@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "lane",
+  "description": "lane — parallel, port-conflict-free dev stacks for agents.",
+  "owner": { "name": "Dheeraj Nalapat" },
+  "plugins": [
+    {
+      "name": "lane",
+      "description": "Run isolated dev stacks per git worktree for parallel testing.",
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/Dheeraj-Nalapat/lane.git",
+        "path": "agent/claude",
+        "ref": "main"
+      }
+    }
+  ]
+}

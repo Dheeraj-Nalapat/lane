@@ -1,0 +1,6 @@
+{
+  "name": "lane",
+  "description": "Run isolated, port-conflict-free dev stacks per git worktree for parallel testing.",
+  "version": "0.1.0",
+  "author": { "name": "Dheeraj Nalapat" }
+}
