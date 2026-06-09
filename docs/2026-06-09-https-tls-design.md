@@ -25,6 +25,7 @@ shared proxy alongside plain HTTP, with **no hard dependency** added to lane.
 | Cert source | **mkcert only** (locally-trusted CA + wildcard cert) |
 | mkcert required? | **No** — lane installs/runs (HTTP) without it; mkcert needed only to enable HTTPS |
 | No-mkcert path | `lane tls enable` prints install instructions and exits non-zero (no self-signed fallback) |
+| CA install | lane **never** runs `mkcert -install`; if the CA is absent it prints the command for the user to run once manually (trust-store change is the user's explicit action) |
 | HTTP when TLS on | **Keep both** http (`:80`) and https (`:443`); no redirect |
 | Scope | **Global** switch (wildcard cert covers all stacks); no per-stack gating |
 | On/off signal | Presence of `~/.lane/traefik/certs/cert.pem` |
@@ -39,12 +40,17 @@ shared proxy alongside plain HTTP, with **no hard dependency** added to lane.
 
 ### `lane tls` command
 
-- **`enable`** — if `mkcert` not on `PATH`: print install guidance
-  (`brew install mkcert` / `https://github.com/FiloSottile/mkcert`) and exit
-  non-zero. Else: `mkcert -install` (CA → trust store), generate the wildcard
-  cert into `~/.lane/traefik/certs/{cert.pem,key.pem}`, write
-  `~/.lane/traefik/dynamic/tls.yml`, then `proxy.Up()` to (re)bind `:443`.
-  Idempotent.
+- **`enable`** — staged, never touches the trust store itself:
+  1. `mkcert` not on `PATH` → print install guidance
+     (`brew install mkcert` / `https://github.com/FiloSottile/mkcert`), exit non-zero.
+  2. mkcert CA not set up (no `rootCA.pem` under `mkcert -CAROOT`) → print
+     `mkcert -install` for the user to **run manually** (one-time; it modifies
+     the system/browser trust store and may prompt for a password) and exit
+     non-zero. lane does **not** run `mkcert -install`.
+  3. CA present → generate the wildcard cert into
+     `~/.lane/traefik/certs/{cert.pem,key.pem}` (this only signs with the existing
+     CA, no trust-store change), write `~/.lane/traefik/dynamic/tls.yml`, then
+     `proxy.Up()` to (re)bind `:443`. Idempotent.
 - **`disable`** — remove `certs/` + `tls.yml`, `proxy.Up()` to drop `:443`.
   Leaves the CA installed (documented).
 - **`status`** — mkcert installed? CA installed (`mkcert -CAROOT` present)?
