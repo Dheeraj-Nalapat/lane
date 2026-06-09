@@ -130,8 +130,17 @@ near zero and guarantees non-invasiveness):
   - **resets any hardcoded `container_name`** (`container_name: !reset null`) so
     Compose auto-names containers with the project prefix — otherwise two stacks
     of the same repo collide on a fixed container name.
-- Environment: `COMPOSE_PROJECT_NAME=<slug>`, a free Tilt UI port, a per-slug
-  image-tag namespace.
+- Environment: `COMPOSE_PROJECT_NAME=<slug>`, `BERTH_SLUG=<slug>`, a free Tilt
+  UI port, a per-slug image-tag namespace.
+
+> **Tilt integration note (verified live, 2026-06-09):** Tilt does **not** honor
+> `COMPOSE_PROJECT_NAME`; it defaults the compose project to the Tiltfile's
+> directory name. The Tiltfile shim must therefore pass
+> `docker_compose(..., project_name=os.getenv("BERTH_SLUG"))` so isolation and
+> `berth down` key off the slug. The shim must also `config.define_bool("docker")`
+> so berth's `-- --docker` is accepted, and berth invokes Tilt with
+> `--host 0.0.0.0` so the Tilt UI is reachable from the proxy via
+> `host.docker.internal`.
 
 ## Isolation guarantees
 

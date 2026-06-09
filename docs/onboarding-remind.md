@@ -5,8 +5,32 @@ test. The `.berth.toml` manifest is already created in the ReMind repo
 (uncommitted, for review). The remaining step touches ReMind's `Tiltfile` —
 follow ReMind's own BE_TASKS.md tracking convention when you apply it.
 
-> Status: **not yet executed live.** The acceptance run binds host `:80` and
-> starts containers; it was deferred to avoid disturbing other running stacks.
+> Status: **berth core verified live** against a synthetic two-stack setup
+> (2026-06-09) — two stacks reachable simultaneously at distinct
+> `*.localhost` URLs with zero host-port conflict, Tilt UIs routed, clean
+> teardown. The full ReMind run is **blocked by a pre-existing ReMind bug**
+> (its `agent-server` Docker image fails to build — see "Known blocker").
+
+## Tiltfile contract (learned from live testing)
+
+A project's Tiltfile, in its docker branch, must:
+1. **Accept `--docker`** — `config.define_bool("docker")` + `config.parse()`
+   (berth always invokes `tilt up --host 0.0.0.0 --port N -- --docker`).
+2. **Set `project_name` to `$BERTH_SLUG`** on `docker_compose(...)` — Tilt does
+   not honor `COMPOSE_PROJECT_NAME`, so without this all stacks (and
+   `berth down`) key off the directory name instead of the slug.
+
+## Known blocker (ReMind, not berth)
+
+ReMind's `--docker` build currently fails:
+```
+agent-server │ cannot normalize a relative path beyond the base directory:
+agent-server │   /app/../../packages/contracts
+agent-server │ ERROR IN: [stage-0 7/8] RUN uv pip install --system --no-cache /packages/contracts/ .
+```
+This is independent of berth (same failure under a plain `tilt up -- --docker`)
+and blocks the whole stack via `depends_on`. Fix `Dockerfile.agent-server`'s
+`packages/contracts` path before running the full ReMind acceptance below.
 
 ## 1. Manifest (done — review it)
 
@@ -38,7 +62,12 @@ if use_docker:
     berth_override = os.getenv("BERTH_COMPOSE_OVERRIDE", "")
     if berth_override:
         compose_files.append(berth_override)
-    docker_compose(compose_files)
+    # Tilt does NOT honor COMPOSE_PROJECT_NAME; pass the slug as project_name so
+    # each stack (and `berth down`) is isolated by slug, not the directory name.
+    if berth_slug:
+        docker_compose(compose_files, project_name=berth_slug)
+    else:
+        docker_compose(compose_files)
 
     docker_build(
         "remind/platform-server" + tag,
