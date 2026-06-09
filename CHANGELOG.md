@@ -23,3 +23,7 @@ to follow [Semantic Versioning](https://semver.org/).
 - Optional HTTPS: `lane tls enable|disable|status` serves trusted
   `https://*.localhost` via mkcert (alongside HTTP; no redirect). mkcert is not
   a hard dependency.
+- Robustness: actionable preflight errors (Docker not running, Compose < 2.20,
+  host-port conflicts); `lane up` no-ops when the stack is already running;
+  `lane restart`; `lane down --volumes`; per-slug built-image isolation
+  (automatic for the compose runner).

@@ -17,6 +17,19 @@ follow ReMind's own BE_TASKS.md tracking convention when you apply it.
 > is driven by `docker compose` directly (lane sets `-p <slug>`) and needs none
 > of this — just a `.lane.toml`.
 
+### Per-slug image isolation (tilt projects)
+
+Tilt builds images by the ref in your Tiltfile. To keep worktrees from sharing
+(and clobbering) a built image tag, suffix built refs with the slug:
+
+```python
+tag = (":" + lane_slug) if lane_slug else ""
+docker_build("remind/platform-server" + tag, ...)
+```
+
+(Compose-runner projects get this automatically — lane resets the `image:` of any
+`build:` service so Compose names it per project/slug.)
+
 A project's Tiltfile, in its docker branch, must:
 1. **Accept `--docker`** — `config.define_bool("docker")` + `config.parse()`
    (lane always invokes `tilt up --host 0.0.0.0 --port N -- --docker`).

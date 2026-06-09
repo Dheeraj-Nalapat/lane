@@ -325,12 +325,13 @@ your projects.
 
 ## Limitations (v1)
 
-- **Per-slug image-tag isolation is disabled by default.** Two worktrees share
-  built image tags; `live_update` isolates active edits, but a simultaneous full
-  rebuild in one worktree can update the shared tag the other uses. (Hook present
-  in the Tiltfile `tag` var — enable by setting per-slug `image:` tags.)
-- **HTTP only** (no TLS for `*.localhost`).
-- **Docker mode only** — built around Tilt's `--docker` path.
+- **Per-slug image isolation:** the **compose runner** does this automatically
+  (lane resets the `image:` of `build:` services so Compose names them per
+  slug). **Tilt projects** opt in with the slug-tag pattern (`tag = (":" +
+  lane_slug) ...` on `docker_build` refs — see `docs/onboarding-remind.md`).
+- **HTTP by default; HTTPS is opt-in** via `lane tls` (mkcert). Nested hosts
+  like `api.<slug>.localhost` aren't covered by the wildcard cert.
+- **Docker mode only** — built around Tilt's `--docker` path / plain compose.
 - **Your own projects first** — not yet hardened for arbitrary third-party repos.
 
 See `docs/2026-06-08-lane-design.md` for the full design rationale and
