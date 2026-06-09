@@ -15,13 +15,13 @@ type tiltRunner struct{}
 func (tiltRunner) Name() string { return "tilt" }
 
 func (tiltRunner) DryRunLines(s RunSpec) string {
-	dyn, _ := tiltx.RenderDynamicRoute(s.Slug, s.TiltPort)
+	dyn, _ := tiltx.RenderDynamicRoute(s.Slug, s.TiltPort, s.TLS)
 	return fmt.Sprintf("# runner: tilt\n# tilt port: %d\n# tilt dynamic (%s):\n%s\n# command: tilt %v\n# env adds: COMPOSE_PROJECT_NAME, LANE, LANE_SLUG, LANE_COMPOSE_OVERRIDE\n",
 		s.TiltPort, s.DynamicPath, dyn, tiltx.UpArgs(s.TiltPort))
 }
 
 func (tiltRunner) Up(s RunSpec) error {
-	dyn, err := tiltx.RenderDynamicRoute(s.Slug, s.TiltPort)
+	dyn, err := tiltx.RenderDynamicRoute(s.Slug, s.TiltPort, s.TLS)
 	if err != nil {
 		return err
 	}

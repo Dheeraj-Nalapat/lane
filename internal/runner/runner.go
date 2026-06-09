@@ -19,6 +19,7 @@ type RunSpec struct {
 	TiltPort     int    // 0 when not Tilt
 	DynamicPath  string // tilt-UI route file; "" when not Tilt
 	Env          []string
+	TLS          bool
 }
 
 // Runner brings a stack up. Teardown stays shared in cmd/down.go.

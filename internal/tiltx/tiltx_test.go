@@ -5,19 +5,29 @@ import (
 	"testing"
 )
 
-func TestRenderDynamic(t *testing.T) {
-	out, err := RenderDynamicRoute("remind", 10377)
+func TestRenderDynamic_NoTLS(t *testing.T) {
+	out, err := RenderDynamicRoute("remind", 10377, false)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
 	s := string(out)
-	for _, want := range []string{
-		"Host(`tilt-remind.localhost`)",
-		"http://host.docker.internal:10377",
-		"remind-tilt",
-	} {
+	if !strings.Contains(s, "Host(`tilt-remind.localhost`)") {
+		t.Errorf("missing web router:\n%s", s)
+	}
+	if strings.Contains(s, "websecure") || strings.Contains(s, "tls") {
+		t.Errorf("no-TLS output must not contain websecure/tls:\n%s", s)
+	}
+}
+
+func TestRenderDynamic_TLS(t *testing.T) {
+	out, err := RenderDynamicRoute("remind", 10377, true)
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	s := string(out)
+	for _, want := range []string{"remind-tilt-tls", "websecure", "tls: true"} {
 		if !strings.Contains(s, want) {
-			t.Errorf("missing %q in:\n%s", want, s)
+			t.Errorf("TLS output missing %q:\n%s", want, s)
 		}
 	}
 }

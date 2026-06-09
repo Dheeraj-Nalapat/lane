@@ -14,6 +14,13 @@ const dynamicTmpl = `http:
       rule: "Host(` + "`tilt-{{.Slug}}.localhost`" + `)"
       service: {{.Slug}}-tilt
       entryPoints: [web]
+{{- if .TLS}}
+    {{.Slug}}-tilt-tls:
+      rule: "Host(` + "`tilt-{{.Slug}}.localhost`" + `)"
+      service: {{.Slug}}-tilt
+      entryPoints: [websecure]
+      tls: true
+{{- end}}
   services:
     {{.Slug}}-tilt:
       loadBalancer:
@@ -22,14 +29,15 @@ const dynamicTmpl = `http:
 `
 
 // RenderDynamicRoute produces the Traefik file-provider config routing
-// tilt-<slug>.localhost to the host-side Tilt UI port.
-func RenderDynamicRoute(slug string, port int) ([]byte, error) {
+// tilt-<slug>.localhost to the host-side Tilt UI port, adding a websecure/TLS
+// router when tls is true.
+func RenderDynamicRoute(slug string, port int, tls bool) ([]byte, error) {
 	t, err := template.New("d").Parse(dynamicTmpl)
 	if err != nil {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	err = t.Execute(&buf, map[string]any{"Slug": slug, "Port": port})
+	err = t.Execute(&buf, map[string]any{"Slug": slug, "Port": port, "TLS": tls})
 	return buf.Bytes(), err
 }
 
