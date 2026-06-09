@@ -47,7 +47,9 @@ func Generate(s Spec) ([]byte, error) {
 		"lane.managed=true",
 		"lane.slug=" + s.Slug,
 		"lane.project.path=" + s.ProjectPath,
-		fmt.Sprintf("lane.tilt.port=%d", s.TiltPort),
+	}
+	if s.TiltPort > 0 {
+		idLabels = append(idLabels, fmt.Sprintf("lane.tilt.port=%d", s.TiltPort))
 	}
 
 	services := map[string]any{}

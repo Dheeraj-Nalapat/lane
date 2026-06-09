@@ -62,3 +62,17 @@ func TestGenerate(t *testing.T) {
 		t.Errorf("missing external network declaration")
 	}
 }
+
+func TestGenerate_NoTiltPortLabelWhenZero(t *testing.T) {
+	out, err := Generate(Spec{
+		Slug: "demo", ProjectPath: "/p", Network: "lane",
+		Services: []string{"web"}, TiltPort: 0,
+		Routes: []Route{{Service: "web", Port: 80, Hostname: "demo.localhost"}},
+	})
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	if strings.Contains(string(out), "lane.tilt.port") {
+		t.Fatalf("compose stack (TiltPort 0) must not emit lane.tilt.port:\n%s", out)
+	}
+}
