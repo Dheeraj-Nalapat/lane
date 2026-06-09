@@ -23,6 +23,10 @@ to follow [Semantic Versioning](https://semver.org/).
 - Optional HTTPS: `lane tls enable|disable|status` serves trusted
   `https://*.localhost` via mkcert (alongside HTTP; no redirect). mkcert is not
   a hard dependency.
+- Agent integration: `lane up --json`/`--wait` and `lane ls --json` for
+  machine-driven use; race-safe parallel `up` (locked proxy bring-up); a Claude
+  Code skill (packaged as a plugin + marketplace) and a Cursor rule documenting
+  the worktree → `lane up --wait --json` → test → `lane down` parallel loop.
 - `lane view` is now an interactive control panel (select a stack; open / logs /
   restart / down), auto-refreshing; falls back to a static snapshot when piped
   (`--plain` to force). Replaces the `--watch` flag.
