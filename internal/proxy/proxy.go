@@ -9,7 +9,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"text/template"
+	"time"
 
+	"github.com/dheeraj-nalapat/lane/internal/lockfile"
 	"github.com/dheeraj-nalapat/lane/internal/paths"
 	"github.com/dheeraj-nalapat/lane/internal/preflight"
 	"github.com/dheeraj-nalapat/lane/internal/tlsx"
@@ -53,6 +55,13 @@ func Up() error {
 	if err := paths.Ensure(); err != nil {
 		return err
 	}
+	// Serialize shared bring-up so parallel `lane up`s don't race on the
+	// network/proxy. Held only for the few seconds of setup, then released.
+	release, err := lockfile.Acquire(filepath.Join(paths.Home(), "proxy.lock"), 30*time.Second)
+	if err != nil {
+		return err
+	}
+	defer release()
 	if err := ensureNetwork(); err != nil {
 		return err
 	}
