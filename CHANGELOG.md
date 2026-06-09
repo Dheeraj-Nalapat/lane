@@ -23,6 +23,9 @@ to follow [Semantic Versioning](https://semver.org/).
 - Optional HTTPS: `lane tls enable|disable|status` serves trusted
   `https://*.localhost` via mkcert (alongside HTTP; no redirect). mkcert is not
   a hard dependency.
+- `lane view` is now an interactive control panel (select a stack; open / logs /
+  restart / down), auto-refreshing; falls back to a static snapshot when piped
+  (`--plain` to force). Replaces the `--watch` flag.
 - Robustness: actionable preflight errors (Docker not running, Compose < 2.20,
   host-port conflicts); `lane up` no-ops when the stack is already running;
   `lane restart`; `lane down --volumes`; per-slug built-image isolation

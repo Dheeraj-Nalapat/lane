@@ -200,7 +200,7 @@ export default defineConfig({
 | `lane up [path]` | Bring a stack up: derive slug → generate override → ensure proxy → run the selected runner. **Tilt runner:** foreground by default, `-d/--detach` to background. **Compose runner:** always detached; `-d` is a no-op, `--build` forces an image rebuild. |
 | `lane down [path]` | Tear down the stack (`docker compose down`) and delete generated files. Repo left untouched. |
 | `lane ls` | Quick, scriptable table of running stacks: slug, URL, Tilt port, state, path. |
-| `lane view [--watch]` | Rich control panel: each stack → URLs → live Traefik routes (from the Traefik API). `--watch` live-refreshes. |
+| `lane view` | Live, interactive control panel (master/detail): select a stack and `o`pen / `l`ogs / `r`estart / `x` down it; auto-refreshing. Piped/CI (non-TTY) prints a static snapshot; `--plain` forces it. |
 | `lane proxy up\|down\|status` | Manage the shared Traefik proxy + `lane` network. |
 | `lane doctor` | Preflight: Docker, Compose ≥ 2.20, Tilt, `*.localhost` resolution. |
 | `lane init` | Scaffold `.lane.toml` by inspecting the project's compose. |
