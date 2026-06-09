@@ -1,5 +1,5 @@
-// Package scaffold powers `berth init`: guess the web entrypoint and render
-// a starter .berth.toml.
+// Package scaffold powers `lane init`: guess the web entrypoint and render
+// a starter .lane.toml.
 package scaffold
 
 import (
@@ -62,7 +62,7 @@ func GuessWebEntry(composeYAML string) (string, int) {
 	return "", 0
 }
 
-// RenderManifest produces .berth.toml content.
+// RenderManifest produces .lane.toml content.
 func RenderManifest(name, composeFile, service string, port int) string {
 	return fmt.Sprintf(`name = "%s"
 compose_file = "%s"

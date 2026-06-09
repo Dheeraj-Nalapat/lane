@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dheerajnalapat/berth/internal/doctor"
+	"github.com/dheerajnalapat/lane/internal/doctor"
 	"github.com/spf13/cobra"
 )
 
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
-	Short: "Check that the environment is ready for berth",
+	Short: "Check that the environment is ready for lane",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report, ok := doctor.Report()
 		fmt.Print(report)

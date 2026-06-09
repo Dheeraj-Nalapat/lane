@@ -1,4 +1,4 @@
-// Package ui renders the berth view control panel.
+// Package ui renders the lane view control panel.
 package ui
 
 import (
@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/dheerajnalapat/berth/internal/stack"
-	"github.com/dheerajnalapat/berth/internal/traefikapi"
+	"github.com/dheerajnalapat/lane/internal/stack"
+	"github.com/dheerajnalapat/lane/internal/traefikapi"
 )
 
 var (
@@ -30,9 +30,9 @@ func Render(stacks []stack.Stack, routers []traefikapi.Router) string {
 	}
 
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("⚓ berth — running stacks") + "\n\n")
+	b.WriteString(titleStyle.Render("🛣  lane — running stacks") + "\n\n")
 	if len(stacks) == 0 {
-		b.WriteString(dimStyle.Render("  (none — run `berth up` in a project)\n"))
+		b.WriteString(dimStyle.Render("  (none — run `lane up` in a project)\n"))
 		return b.String()
 	}
 	sort.Slice(stacks, func(i, j int) bool { return stacks[i].Slug < stacks[j].Slug })

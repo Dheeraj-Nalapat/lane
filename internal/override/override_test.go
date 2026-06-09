@@ -9,7 +9,7 @@ func TestGenerate(t *testing.T) {
 	out, err := Generate(Spec{
 		Slug:        "remind-featx",
 		ProjectPath: "/home/u/remind",
-		Network:     "berth",
+		Network:     "lane",
 		Services:    []string{"server", "agent-server", "ui", "worker"},
 		TiltPort:    10377,
 		Routes: []Route{
@@ -46,15 +46,15 @@ func TestGenerate(t *testing.T) {
 		t.Errorf("missing ui service port label")
 	}
 
-	// berth identity labels appear.
-	if !strings.Contains(s, "berth.slug=remind-featx") {
-		t.Errorf("missing berth.slug label")
+	// lane identity labels appear.
+	if !strings.Contains(s, "lane.slug=remind-featx") {
+		t.Errorf("missing lane.slug label")
 	}
-	if !strings.Contains(s, "berth.project.path=/home/u/remind") {
-		t.Errorf("missing berth.project.path label")
+	if !strings.Contains(s, "lane.project.path=/home/u/remind") {
+		t.Errorf("missing lane.project.path label")
 	}
-	if !strings.Contains(s, "berth.tilt.port=10377") {
-		t.Errorf("missing berth.tilt.port label")
+	if !strings.Contains(s, "lane.tilt.port=10377") {
+		t.Errorf("missing lane.tilt.port label")
 	}
 
 	// The external network is declared.

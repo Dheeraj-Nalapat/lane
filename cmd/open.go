@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/dheerajnalapat/berth/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 

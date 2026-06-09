@@ -1,4 +1,4 @@
-module github.com/dheerajnalapat/berth
+module github.com/dheerajnalapat/lane
 
 go 1.24.0
 

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dheerajnalapat/berth/internal/dockerx"
-	"github.com/dheerajnalapat/berth/internal/traefikapi"
-	"github.com/dheerajnalapat/berth/internal/ui"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/traefikapi"
+	"github.com/dheerajnalapat/lane/internal/ui"
 	"github.com/spf13/cobra"
 )
 

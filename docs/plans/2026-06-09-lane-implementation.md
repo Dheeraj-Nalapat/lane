@@ -1,10 +1,10 @@
-# berth Implementation Plan
+# lane Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `berth`, a Go CLI that runs many Docker/Tilt project stacks at once — across projects and git worktrees — with zero host-port conflicts, each reachable at a friendly `*.localhost` hostname via a shared Traefik proxy.
+**Goal:** Build `lane`, a Go CLI that runs many Docker/Tilt project stacks at once — across projects and git worktrees — with zero host-port conflicts, each reachable at a friendly `*.localhost` hostname via a shared Traefik proxy.
 
-**Architecture:** A shared, always-on Traefik container (on an external `berth` network) routes `Host(<slug>.localhost)` to each stack's containers over the Docker network, so stacks publish **no host ports**. `berth` derives a per-stack `slug`, generates a non-invasive Compose override (strips host ports + hardcoded container names via `!reset`, adds Traefik labels + network), sets env, and runs `tilt up -- --docker`. State is derived from Docker labels (no state file). berth is **service-agnostic** — it routes whatever the manifest names.
+**Architecture:** A shared, always-on Traefik container (on an external `lane` network) routes `Host(<slug>.localhost)` to each stack's containers over the Docker network, so stacks publish **no host ports**. `lane` derives a per-stack `slug`, generates a non-invasive Compose override (strips host ports + hardcoded container names via `!reset`, adds Traefik labels + network), sets env, and runs `tilt up -- --docker`. State is derived from Docker labels (no state file). lane is **service-agnostic** — it routes whatever the manifest names.
 
 **Tech Stack:** Go 1.22, `spf13/cobra` (CLI), `BurntSushi/toml` (manifest), `gopkg.in/yaml.v3` (override + compose parsing), `charmbracelet/bubbletea` + `lipgloss` (the `view` TUI). External tools assumed present at runtime: Docker ≥ 28 / Compose ≥ 2.20, Tilt ≥ 0.37, git.
 
@@ -13,30 +13,30 @@
 ## File Structure
 
 ```
-berth/
-  go.mod                          module github.com/dheerajnalapat/berth (adjust to real repo path)
+lane/
+  go.mod                          module github.com/dheerajnalapat/lane (adjust to real repo path)
   main.go                         entrypoint → cmd.Execute()
   cmd/
     root.go                       root cobra command + global flags (--slug, --dry-run, -v)
-    up.go                         berth up
-    down.go                       berth down
-    ls.go                         berth ls
-    view.go                       berth view (+ --watch)
-    proxy.go                      berth proxy up|down|status|logs
-    doctor.go                     berth doctor
-    init.go                       berth init
-    open.go                       berth open
-    logs.go                       berth logs
+    up.go                         lane up
+    down.go                       lane down
+    ls.go                         lane ls
+    view.go                       lane view (+ --watch)
+    proxy.go                      lane proxy up|down|status|logs
+    doctor.go                     lane doctor
+    init.go                       lane init
+    open.go                       lane open
+    logs.go                       lane logs
   internal/
     ports/ports.go                free TCP port allocation
     gitx/worktree.go              linked-worktree detection + name
-    manifest/manifest.go          .berth.toml load + validate
+    manifest/manifest.go          .lane.toml load + validate
     slug/slug.go                  sanitize + derive + resolution ladder
     compose/compose.go            read base compose → service names
     override/override.go          generate the Compose override (labels, !reset, network)
-    paths/paths.go                ~/.berth dirs (home, overrides, run, traefik/dynamic)
+    paths/paths.go                ~/.lane dirs (home, overrides, run, traefik/dynamic)
     proxy/proxy.go                Traefik lifecycle: ensure network, up/down/status, dynamic file
-    dockerx/dockerx.go            query containers by berth labels → []Stack
+    dockerx/dockerx.go            query containers by lane labels → []Stack
     traefikapi/traefikapi.go      query Traefik API (routers/services) for `view`
     tiltx/tiltx.go                build the `tilt up` command + env
     stack/stack.go                Stack struct shared across ls/view/down
@@ -56,14 +56,14 @@ berth/
 ### Task 1: Project scaffold + root command
 
 **Files:**
-- Create: `berth/go.mod`, `berth/main.go`, `berth/cmd/root.go`
-- Test: `berth/cmd/root_test.go`
+- Create: `lane/go.mod`, `lane/main.go`, `lane/cmd/root.go`
+- Test: `lane/cmd/root_test.go`
 
 - [ ] **Step 1: Initialize the module**
 
-Run from `berth/`:
+Run from `lane/`:
 ```bash
-go mod init github.com/dheerajnalapat/berth   # adjust to the real GitHub path you'll publish under
+go mod init github.com/dheerajnalapat/lane   # adjust to the real GitHub path you'll publish under
 go get github.com/spf13/cobra@latest
 ```
 Expected: `go.mod` created with a `require github.com/spf13/cobra` line.
@@ -80,8 +80,8 @@ import (
 )
 
 func TestRootCommand_HasName(t *testing.T) {
-	if root.Use != "berth" {
-		t.Fatalf("root.Use = %q, want %q", root.Use, "berth")
+	if root.Use != "lane" {
+		t.Fatalf("root.Use = %q, want %q", root.Use, "lane")
 	}
 }
 
@@ -118,7 +118,7 @@ var (
 )
 
 var root = &cobra.Command{
-	Use:           "berth",
+	Use:           "lane",
 	Short:         "Run many project stacks at once with zero port conflicts",
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -142,12 +142,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dheerajnalapat/berth/cmd"
+	"github.com/dheerajnalapat/lane/cmd"
 )
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, "berth:", err)
+		fmt.Fprintln(os.Stderr, "lane:", err)
 		os.Exit(1)
 	}
 }
@@ -162,7 +162,7 @@ Expected: PASS, binary builds.
 
 ```bash
 git add go.mod go.sum main.go cmd/
-git commit -m "feat: scaffold berth module and root command"
+git commit -m "feat: scaffold lane module and root command"
 ```
 
 ---
@@ -172,8 +172,8 @@ git commit -m "feat: scaffold berth module and root command"
 ### Task 2: Free port allocation
 
 **Files:**
-- Create: `berth/internal/ports/ports.go`
-- Test: `berth/internal/ports/ports_test.go`
+- Create: `lane/internal/ports/ports.go`
+- Test: `lane/internal/ports/ports_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -248,8 +248,8 @@ git commit -m "feat: free TCP port allocation"
 ### Task 3: Git linked-worktree detection
 
 **Files:**
-- Create: `berth/internal/gitx/worktree.go`
-- Test: `berth/internal/gitx/worktree_test.go`
+- Create: `lane/internal/gitx/worktree.go`
+- Test: `lane/internal/gitx/worktree_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -377,11 +377,11 @@ git commit -m "feat: detect linked git worktree and its name"
 
 ---
 
-### Task 4: Manifest (.berth.toml) loading
+### Task 4: Manifest (.lane.toml) loading
 
 **Files:**
-- Create: `berth/internal/manifest/manifest.go`
-- Test: `berth/internal/manifest/manifest_test.go`
+- Create: `lane/internal/manifest/manifest.go`
+- Test: `lane/internal/manifest/manifest_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -398,7 +398,7 @@ import (
 func write(t *testing.T, body string) string {
 	t.Helper()
 	dir := t.TempDir()
-	p := filepath.Join(dir, ".berth.toml")
+	p := filepath.Join(dir, ".lane.toml")
 	if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -462,7 +462,7 @@ Expected: FAIL — `undefined: Load`. (May need `go get github.com/BurntSushi/to
 
 `internal/manifest/manifest.go`:
 ```go
-// Package manifest loads the committed .berth.toml project descriptor.
+// Package manifest loads the committed .lane.toml project descriptor.
 package manifest
 
 import (
@@ -479,7 +479,7 @@ type Route struct {
 	Host    string `toml:"host"`    // optional host template, default "{slug}"
 }
 
-// Manifest is the parsed .berth.toml.
+// Manifest is the parsed .lane.toml.
 type Manifest struct {
 	Name        string `toml:"name"`         // base slug
 	ComposeFile string `toml:"compose_file"` // path to base compose, relative to project dir
@@ -487,27 +487,27 @@ type Manifest struct {
 	Routes      []Route `toml:"routes"`
 }
 
-// Load reads and validates a .berth.toml at path.
+// Load reads and validates a .lane.toml at path.
 func Load(path string) (*Manifest, error) {
 	var m Manifest
 	if _, err := toml.DecodeFile(path, &m); err != nil {
 		return nil, fmt.Errorf("reading %s: %w", path, err)
 	}
 	if m.Name == "" {
-		return nil, errors.New(".berth.toml: 'name' is required")
+		return nil, errors.New(".lane.toml: 'name' is required")
 	}
 	if m.ComposeFile == "" {
-		return nil, errors.New(".berth.toml: 'compose_file' is required")
+		return nil, errors.New(".lane.toml: 'compose_file' is required")
 	}
 	if len(m.Routes) == 0 {
-		return nil, errors.New(".berth.toml: at least one [[routes]] entry is required")
+		return nil, errors.New(".lane.toml: at least one [[routes]] entry is required")
 	}
 	for i := range m.Routes {
 		if m.Routes[i].Host == "" {
 			m.Routes[i].Host = "{slug}"
 		}
 		if m.Routes[i].Service == "" || m.Routes[i].Port == 0 {
-			return nil, fmt.Errorf(".berth.toml: route %d needs both 'service' and 'port'", i)
+			return nil, fmt.Errorf(".lane.toml: route %d needs both 'service' and 'port'", i)
 		}
 	}
 	return &m, nil
@@ -523,7 +523,7 @@ Expected: PASS.
 
 ```bash
 git add internal/manifest/ go.mod go.sum
-git commit -m "feat: load and validate .berth.toml manifest"
+git commit -m "feat: load and validate .lane.toml manifest"
 ```
 
 ---
@@ -531,8 +531,8 @@ git commit -m "feat: load and validate .berth.toml manifest"
 ### Task 5: Slug sanitize + derive + resolution ladder
 
 **Files:**
-- Create: `berth/internal/slug/slug.go`
-- Test: `berth/internal/slug/slug_test.go`
+- Create: `lane/internal/slug/slug.go`
+- Test: `lane/internal/slug/slug_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -636,8 +636,8 @@ func Derive(base, worktree string) string {
 // Inputs feeds the resolution ladder.
 type Inputs struct {
 	Flag         string // --slug
-	Env          string // BERTH_SLUG
-	ManifestName string // .berth.toml name
+	Env          string // LANE_SLUG
+	ManifestName string // .lane.toml name
 	Worktree     string // linked worktree name, "" if main
 	DirBase      string // basename of project dir (fallback)
 }
@@ -676,8 +676,8 @@ git commit -m "feat: slug sanitize, derive, and resolution ladder"
 ### Task 6: Read base compose service names
 
 **Files:**
-- Create: `berth/internal/compose/compose.go`
-- Test: `berth/internal/compose/compose_test.go`
+- Create: `lane/internal/compose/compose.go`
+- Test: `lane/internal/compose/compose_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -776,10 +776,10 @@ git commit -m "feat: read service names from base compose"
 ### Task 7: Generate the Compose override
 
 **Files:**
-- Create: `berth/internal/override/override.go`
-- Test: `berth/internal/override/override_test.go`
+- Create: `lane/internal/override/override.go`
+- Test: `lane/internal/override/override_test.go`
 
-This generates the non-invasive overlay: for every service, `!reset` host ports and any hardcoded `container_name`; for routed services, join the `berth` network and add Traefik + berth labels.
+This generates the non-invasive overlay: for every service, `!reset` host ports and any hardcoded `container_name`; for routed services, join the `lane` network and add Traefik + lane labels.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -796,7 +796,7 @@ func TestGenerate(t *testing.T) {
 	out, err := Generate(Spec{
 		Slug:        "remind-featx",
 		ProjectPath: "/home/u/remind",
-		Network:     "berth",
+		Network:     "lane",
 		Services:    []string{"server", "agent-server", "ui", "worker"},
 		TiltPort:    10377,
 		Routes: []Route{
@@ -833,15 +833,15 @@ func TestGenerate(t *testing.T) {
 		t.Errorf("missing ui service port label")
 	}
 
-	// berth identity labels appear.
-	if !strings.Contains(s, "berth.slug=remind-featx") {
-		t.Errorf("missing berth.slug label")
+	// lane identity labels appear.
+	if !strings.Contains(s, "lane.slug=remind-featx") {
+		t.Errorf("missing lane.slug label")
 	}
-	if !strings.Contains(s, "berth.project.path=/home/u/remind") {
-		t.Errorf("missing berth.project.path label")
+	if !strings.Contains(s, "lane.project.path=/home/u/remind") {
+		t.Errorf("missing lane.project.path label")
 	}
-	if !strings.Contains(s, "berth.tilt.port=10377") {
-		t.Errorf("missing berth.tilt.port label")
+	if !strings.Contains(s, "lane.tilt.port=10377") {
+		t.Errorf("missing lane.tilt.port label")
 	}
 
 	// The external network is declared.
@@ -860,7 +860,7 @@ Expected: FAIL — `undefined: Generate`.
 
 `internal/override/override.go`:
 ```go
-// Package override generates the non-invasive Compose overlay berth applies.
+// Package override generates the non-invasive Compose overlay lane applies.
 package override
 
 import (
@@ -881,7 +881,7 @@ type Route struct {
 type Spec struct {
 	Slug        string
 	ProjectPath string
-	Network     string // shared external network name, e.g. "berth"
+	Network     string // shared external network name, e.g. "lane"
 	Services    []string
 	Routes      []Route
 	TiltPort    int
@@ -906,10 +906,10 @@ func Generate(s Spec) ([]byte, error) {
 	}
 
 	idLabels := []string{
-		"berth.managed=true",
-		"berth.slug=" + s.Slug,
-		"berth.project.path=" + s.ProjectPath,
-		fmt.Sprintf("berth.tilt.port=%d", s.TiltPort),
+		"lane.managed=true",
+		"lane.slug=" + s.Slug,
+		"lane.project.path=" + s.ProjectPath,
+		fmt.Sprintf("lane.tilt.port=%d", s.TiltPort),
 	}
 
 	services := map[string]any{}
@@ -930,7 +930,7 @@ func Generate(s Spec) ([]byte, error) {
 				fmt.Sprintf("traefik.http.routers.%s.rule=Host(`%s`)", router, r.Hostname),
 				"traefik.http.routers."+router+".entrypoints=web",
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", router, r.Port),
-				"berth.url=http://"+r.Hostname,
+				"lane.url=http://"+r.Hostname,
 			)
 		}
 		svc["labels"] = labels
@@ -965,11 +965,11 @@ git commit -m "feat: generate non-invasive compose override with !reset + traefi
 
 ## Phase 3 — Paths and the shared proxy
 
-### Task 8: berth home paths
+### Task 8: lane home paths
 
 **Files:**
-- Create: `berth/internal/paths/paths.go`
-- Test: `berth/internal/paths/paths_test.go`
+- Create: `lane/internal/paths/paths.go`
+- Test: `lane/internal/paths/paths_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -983,8 +983,8 @@ import (
 )
 
 func TestPaths(t *testing.T) {
-	t.Setenv("BERTH_HOME", "/tmp/berthtest")
-	if got := Home(); got != "/tmp/berthtest" {
+	t.Setenv("LANE_HOME", "/tmp/lanetest")
+	if got := Home(); got != "/tmp/lanetest" {
 		t.Fatalf("Home = %q", got)
 	}
 	if !strings.HasSuffix(Overrides(), "/overrides") {
@@ -1008,7 +1008,7 @@ Expected: FAIL — `undefined: Home`.
 
 `internal/paths/paths.go`:
 ```go
-// Package paths centralizes berth's on-disk layout under ~/.berth.
+// Package paths centralizes lane's on-disk layout under ~/.lane.
 package paths
 
 import (
@@ -1016,13 +1016,13 @@ import (
 	"path/filepath"
 )
 
-// Home is BERTH_HOME or ~/.berth.
+// Home is LANE_HOME or ~/.lane.
 func Home() string {
-	if h := os.Getenv("BERTH_HOME"); h != "" {
+	if h := os.Getenv("LANE_HOME"); h != "" {
 		return h
 	}
 	h, _ := os.UserHomeDir()
-	return filepath.Join(h, ".berth")
+	return filepath.Join(h, ".lane")
 }
 
 func Overrides() string      { return filepath.Join(Home(), "overrides") }
@@ -1030,7 +1030,7 @@ func Run() string            { return filepath.Join(Home(), "run") }
 func Traefik() string        { return filepath.Join(Home(), "traefik") }
 func TraefikDynamic() string { return filepath.Join(Traefik(), "dynamic") }
 
-// Ensure creates all berth directories if missing.
+// Ensure creates all lane directories if missing.
 func Ensure() error {
 	for _, d := range []string{Overrides(), Run(), TraefikDynamic()} {
 		if err := os.MkdirAll(d, 0o755); err != nil {
@@ -1050,7 +1050,7 @@ Expected: PASS.
 
 ```bash
 git add internal/paths/
-git commit -m "feat: berth home path layout"
+git commit -m "feat: lane home path layout"
 ```
 
 ---
@@ -1058,8 +1058,8 @@ git commit -m "feat: berth home path layout"
 ### Task 9: Traefik compose asset + proxy lifecycle
 
 **Files:**
-- Create: `berth/internal/proxy/traefik-compose.yml.tmpl`, `berth/internal/proxy/proxy.go`
-- Test: `berth/internal/proxy/proxy_test.go`
+- Create: `lane/internal/proxy/traefik-compose.yml.tmpl`, `lane/internal/proxy/proxy.go`
+- Test: `lane/internal/proxy/proxy_test.go`
 
 > The template lives **inside** `internal/proxy/` so `//go:embed` can reference it directly — `embed` forbids parent (`../`) paths.
 
@@ -1070,7 +1070,7 @@ git commit -m "feat: berth home path layout"
 services:
   proxy:
     image: traefik:v3.1
-    container_name: berth-proxy
+    container_name: lane-proxy
     command:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
@@ -1081,8 +1081,8 @@ services:
       - --api.dashboard=true
       - --api.insecure=true
     labels:
-      - berth.managed=true
-      - berth.proxy=true
+      - lane.managed=true
+      - lane.proxy=true
     ports:
       - "80:80"
       - "127.0.0.1:8080:8080"
@@ -1112,16 +1112,16 @@ import (
 )
 
 func TestRenderCompose(t *testing.T) {
-	out, err := renderCompose("berth", "/tmp/berth/traefik/dynamic")
+	out, err := renderCompose("lane", "/tmp/lane/traefik/dynamic")
 	if err != nil {
 		t.Fatalf("render error: %v", err)
 	}
 	s := string(out)
 	for _, want := range []string{
 		"image: traefik:v3.1",
-		"--providers.docker.network=berth",
+		"--providers.docker.network=lane",
 		"host.docker.internal:host-gateway",
-		"/tmp/berth/traefik/dynamic:/dynamic:ro",
+		"/tmp/lane/traefik/dynamic:/dynamic:ro",
 		"external: true",
 	} {
 		if !strings.Contains(s, want) {
@@ -1140,7 +1140,7 @@ Expected: FAIL — `undefined: renderCompose`.
 
 `internal/proxy/proxy.go`:
 ```go
-// Package proxy manages the shared Traefik container and the berth network.
+// Package proxy manages the shared Traefik container and the lane network.
 package proxy
 
 import (
@@ -1152,14 +1152,14 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/dheerajnalapat/berth/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/paths"
 )
 
 //go:embed traefik-compose.yml.tmpl
 var composeTmpl string
 
 // Network is the shared external Docker network name.
-const Network = "berth"
+const Network = "lane"
 
 func renderCompose(network, dynamicDir string) ([]byte, error) {
 	t, err := template.New("c").Parse(composeTmpl)
@@ -1207,10 +1207,10 @@ func Up() error {
 // Down stops Traefik (leaves the network in place).
 func Down() error { return dockerCompose("down") }
 
-// Running reports whether the berth-proxy container is up.
+// Running reports whether the lane-proxy container is up.
 func Running() bool {
-	out, _ := exec.Command("docker", "ps", "--filter", "name=^berth-proxy$", "--format", "{{.Names}}").Output()
-	return bytes.Contains(out, []byte("berth-proxy"))
+	out, _ := exec.Command("docker", "ps", "--filter", "name=^lane-proxy$", "--format", "{{.Names}}").Output()
+	return bytes.Contains(out, []byte("lane-proxy"))
 }
 
 // Ensure starts the proxy only if it is not already running.
@@ -1222,7 +1222,7 @@ func Ensure() error {
 }
 
 func dockerCompose(args ...string) error {
-	full := append([]string{"compose", "-p", "berth-proxy", "-f", composePath()}, args...)
+	full := append([]string{"compose", "-p", "lane-proxy", "-f", composePath()}, args...)
 	cmd := exec.Command("docker", full...)
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	return cmd.Run()
@@ -1245,17 +1245,17 @@ go run . proxy up      # after Task 14 wires the command; else skip to Task 14
 
 ```bash
 git add internal/proxy/
-git commit -m "feat: shared Traefik proxy lifecycle and berth network"
+git commit -m "feat: shared Traefik proxy lifecycle and lane network"
 ```
 
 ---
 
 ## Phase 4 — up / down / proxy commands
 
-### Task 10: `berth proxy` command
+### Task 10: `lane proxy` command
 
 **Files:**
-- Create: `berth/cmd/proxy.go`
+- Create: `lane/cmd/proxy.go`
 
 - [ ] **Step 1: Implement the command**
 
@@ -1266,7 +1266,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/dheerajnalapat/berth/internal/proxy"
+	"github.com/dheerajnalapat/lane/internal/proxy"
 	"github.com/spf13/cobra"
 )
 
@@ -1280,7 +1280,7 @@ var proxyCmd = &cobra.Command{
 			if err := proxy.Up(); err != nil {
 				return err
 			}
-			fmt.Println("berth proxy is up (http://*.localhost → your stacks)")
+			fmt.Println("lane proxy is up (http://*.localhost → your stacks)")
 			return nil
 		case "down":
 			return proxy.Down()
@@ -1305,13 +1305,13 @@ func init() { root.AddCommand(proxyCmd) }
 ```bash
 go build ./... && go run . proxy up && go run . proxy status
 ```
-Expected: `berth proxy is up …`, then `running`. Confirm with `docker ps | grep berth-proxy`. Visit `http://localhost:8080/dashboard/` — Traefik dashboard loads.
+Expected: `lane proxy is up …`, then `running`. Confirm with `docker ps | grep lane-proxy`. Visit `http://localhost:8080/dashboard/` — Traefik dashboard loads.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add cmd/proxy.go
-git commit -m "feat: berth proxy up|down|status command"
+git commit -m "feat: lane proxy up|down|status command"
 ```
 
 ---
@@ -1319,8 +1319,8 @@ git commit -m "feat: berth proxy up|down|status command"
 ### Task 11: Tilt dynamic route + tilt command builder
 
 **Files:**
-- Create: `berth/internal/tiltx/tiltx.go`
-- Test: `berth/internal/tiltx/tiltx_test.go`
+- Create: `lane/internal/tiltx/tiltx.go`
+- Test: `lane/internal/tiltx/tiltx_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1403,7 +1403,7 @@ func RenderDynamicRoute(slug string, port int) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// UpArgs returns the args for `tilt up` in berth's docker mode on a given port.
+// UpArgs returns the args for `tilt up` in lane's docker mode on a given port.
 func UpArgs(port int) []string {
 	return []string{"up", "--", "--docker", "--port", strconv.Itoa(port)}
 }
@@ -1423,11 +1423,11 @@ git commit -m "feat: tilt up args and tilt-<slug>.localhost dynamic route"
 
 ---
 
-### Task 12: `berth up`
+### Task 12: `lane up`
 
 **Files:**
-- Create: `berth/cmd/up.go`, `berth/internal/identity/identity.go`
-- Test: `berth/internal/identity/identity_test.go`
+- Create: `lane/cmd/up.go`, `lane/internal/identity/identity.go`
+- Test: `lane/internal/identity/identity_test.go`
 
 `identity` packages the resolve-everything step so it is unit-testable without running Tilt.
 
@@ -1488,17 +1488,17 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/berth/internal/compose"
-	"github.com/dheerajnalapat/berth/internal/dockerx"
-	"github.com/dheerajnalapat/berth/internal/gitx"
-	"github.com/dheerajnalapat/berth/internal/identity"
-	"github.com/dheerajnalapat/berth/internal/manifest"
-	"github.com/dheerajnalapat/berth/internal/override"
-	"github.com/dheerajnalapat/berth/internal/paths"
-	"github.com/dheerajnalapat/berth/internal/ports"
-	"github.com/dheerajnalapat/berth/internal/proxy"
-	"github.com/dheerajnalapat/berth/internal/slug"
-	"github.com/dheerajnalapat/berth/internal/tiltx"
+	"github.com/dheerajnalapat/lane/internal/compose"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/gitx"
+	"github.com/dheerajnalapat/lane/internal/identity"
+	"github.com/dheerajnalapat/lane/internal/manifest"
+	"github.com/dheerajnalapat/lane/internal/override"
+	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/ports"
+	"github.com/dheerajnalapat/lane/internal/proxy"
+	"github.com/dheerajnalapat/lane/internal/slug"
+	"github.com/dheerajnalapat/lane/internal/tiltx"
 	"github.com/spf13/cobra"
 )
 
@@ -1506,7 +1506,7 @@ var flagDetach bool
 
 var upCmd = &cobra.Command{
 	Use:   "up [path]",
-	Short: "Bring a stack up behind the berth proxy",
+	Short: "Bring a stack up behind the lane proxy",
 	Args:  cobra.MaximumNArgs(1),
 	RunE:  runUp,
 }
@@ -1522,7 +1522,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	m, err := manifest.Load(filepath.Join(dir, ".berth.toml"))
+	m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 	if err != nil {
 		return err
 	}
@@ -1532,7 +1532,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	sl := slug.Resolve(slug.Inputs{
-		Flag: flagSlug, Env: os.Getenv("BERTH_SLUG"),
+		Flag: flagSlug, Env: os.Getenv("LANE_SLUG"),
 		ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir),
 	})
 
@@ -1579,16 +1579,16 @@ func runUp(cmd *cobra.Command, args []string) error {
 
 	env := append(os.Environ(),
 		"COMPOSE_PROJECT_NAME="+sl,
-		"BERTH=1",
-		"BERTH_SLUG="+sl,
-		"BERTH_COMPOSE_OVERRIDE="+overridePath,
+		"LANE=1",
+		"LANE_SLUG="+sl,
+		"LANE_COMPOSE_OVERRIDE="+overridePath,
 	)
 	if m.APITarget != "" {
-		env = append(env, "BERTH_API_TARGET=http://"+m.APITarget)
+		env = append(env, "LANE_API_TARGET=http://"+m.APITarget)
 	}
 
 	if flagDryRun {
-		fmt.Printf("# slug: %s\n# tilt port: %d\n# override (%s):\n%s\n# tilt dynamic (%s):\n%s\n# command: tilt %v\n# env adds: COMPOSE_PROJECT_NAME, BERTH, BERTH_SLUG, BERTH_COMPOSE_OVERRIDE\n",
+		fmt.Printf("# slug: %s\n# tilt port: %d\n# override (%s):\n%s\n# tilt dynamic (%s):\n%s\n# command: tilt %v\n# env adds: COMPOSE_PROJECT_NAME, LANE, LANE_SLUG, LANE_COMPOSE_OVERRIDE\n",
 			sl, tiltPort, overridePath, body, dynamicPath, dynamic, tiltx.UpArgs(tiltPort))
 		return nil
 	}
@@ -1620,7 +1620,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		}
 		pidFile := filepath.Join(paths.Run(), sl+".pid")
 		_ = os.WriteFile(pidFile, []byte(fmt.Sprint(tcmd.Process.Pid)), 0o644)
-		fmt.Printf("detached (pid %d). logs: berth logs --slug %s\n", tcmd.Process.Pid, sl)
+		fmt.Printf("detached (pid %d). logs: lane logs --slug %s\n", tcmd.Process.Pid, sl)
 		return nil
 	}
 
@@ -1636,7 +1636,7 @@ func projectDir(args []string) (string, error) {
 }
 
 func printURLs(sl string, routes []override.Route) {
-	fmt.Printf("berth: %s\n", sl)
+	fmt.Printf("lane: %s\n", sl)
 	for _, r := range routes {
 		fmt.Printf("  → http://%s  (%s:%d)\n", r.Hostname, r.Service, r.Port)
 	}
@@ -1653,7 +1653,7 @@ Expected: builds once `dockerx.SlugOwner` (Task 13) exists. **Implement Task 13 
 
 ```bash
 git add cmd/up.go internal/identity/
-git commit -m "feat: berth up — resolve slug, generate override, run tilt"
+git commit -m "feat: lane up — resolve slug, generate override, run tilt"
 ```
 
 ---
@@ -1661,8 +1661,8 @@ git commit -m "feat: berth up — resolve slug, generate override, run tilt"
 ### Task 13: Docker label queries (Stack inventory)
 
 **Files:**
-- Create: `berth/internal/stack/stack.go`, `berth/internal/dockerx/dockerx.go`
-- Test: `berth/internal/dockerx/dockerx_test.go`
+- Create: `lane/internal/stack/stack.go`, `lane/internal/dockerx/dockerx.go`
+- Test: `lane/internal/dockerx/dockerx_test.go`
 
 - [ ] **Step 1: Write the failing test (pure parsing)**
 
@@ -1674,9 +1674,9 @@ import "testing"
 
 func TestParsePS(t *testing.T) {
 	// One JSON line per container, as `docker ps --format '{{json .}}'` emits.
-	lines := `{"Names":"remind-ui-1","Labels":"berth.managed=true,berth.slug=remind,berth.url=http://remind.localhost,berth.tilt.port=10377,berth.project.path=/home/u/remind","State":"running"}
-{"Names":"remind-server-1","Labels":"berth.managed=true,berth.slug=remind,berth.project.path=/home/u/remind","State":"running"}
-{"Names":"x-ui-1","Labels":"berth.managed=true,berth.slug=x,berth.url=http://x.localhost,berth.tilt.port=10500,berth.project.path=/home/u/x","State":"running"}`
+	lines := `{"Names":"remind-ui-1","Labels":"lane.managed=true,lane.slug=remind,lane.url=http://remind.localhost,lane.tilt.port=10377,lane.project.path=/home/u/remind","State":"running"}
+{"Names":"remind-server-1","Labels":"lane.managed=true,lane.slug=remind,lane.project.path=/home/u/remind","State":"running"}
+{"Names":"x-ui-1","Labels":"lane.managed=true,lane.slug=x,lane.url=http://x.localhost,lane.tilt.port=10500,lane.project.path=/home/u/x","State":"running"}`
 	stacks := parsePS([]byte(lines))
 	if len(stacks) != 2 {
 		t.Fatalf("got %d stacks, want 2", len(stacks))
@@ -1703,7 +1703,7 @@ Expected: FAIL — `undefined: parsePS`.
 // Package stack holds the shared Stack model used by ls/view/down.
 package stack
 
-// Stack is one berth-managed project stack, aggregated from container labels.
+// Stack is one lane-managed project stack, aggregated from container labels.
 type Stack struct {
 	Slug        string
 	URL         string
@@ -1716,7 +1716,7 @@ type Stack struct {
 
 `internal/dockerx/dockerx.go`:
 ```go
-// Package dockerx queries Docker for berth-managed containers.
+// Package dockerx queries Docker for lane-managed containers.
 package dockerx
 
 import (
@@ -1725,7 +1725,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dheerajnalapat/berth/internal/stack"
+	"github.com/dheerajnalapat/lane/internal/stack"
 )
 
 type psLine struct {
@@ -1755,23 +1755,23 @@ func parsePS(out []byte) []stack.Stack {
 			continue
 		}
 		lbl := labelMap(p.Labels)
-		sl := lbl["berth.slug"]
+		sl := lbl["lane.slug"]
 		if sl == "" {
 			continue
 		}
 		s := bySlug[sl]
 		if s == nil {
-			s = &stack.Stack{Slug: sl, ProjectPath: lbl["berth.project.path"]}
+			s = &stack.Stack{Slug: sl, ProjectPath: lbl["lane.project.path"]}
 			bySlug[sl] = s
 		}
 		s.Containers = append(s.Containers, p.Names)
 		if p.State == "running" {
 			s.Running = true
 		}
-		if u := lbl["berth.url"]; u != "" {
+		if u := lbl["lane.url"]; u != "" {
 			s.URL = u
 		}
-		if tp := lbl["berth.tilt.port"]; tp != "" {
+		if tp := lbl["lane.tilt.port"]; tp != "" {
 			s.TiltPort, _ = strconv.Atoi(tp)
 		}
 	}
@@ -1782,11 +1782,11 @@ func parsePS(out []byte) []stack.Stack {
 	return out2
 }
 
-// List returns all berth-managed stacks (excludes the proxy).
+// List returns all lane-managed stacks (excludes the proxy).
 func List() ([]stack.Stack, error) {
 	cmd := exec.Command("docker", "ps", "-a",
-		"--filter", "label=berth.managed=true",
-		"--filter", "label=berth.slug",
+		"--filter", "label=lane.managed=true",
+		"--filter", "label=lane.slug",
 		"--format", "{{json .}}")
 	out, err := cmd.Output()
 	if err != nil {
@@ -1813,21 +1813,21 @@ func SlugOwner(slug string) (string, bool) {
 - [ ] **Step 4: Run test + build**
 
 Run: `go test ./internal/dockerx/ && go build ./...`
-Expected: PASS; `berth up` now builds.
+Expected: PASS; `lane up` now builds.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add internal/stack/ internal/dockerx/
-git commit -m "feat: query berth stacks from docker labels"
+git commit -m "feat: query lane stacks from docker labels"
 ```
 
 ---
 
-### Task 14: `berth down`
+### Task 14: `lane down`
 
 **Files:**
-- Create: `berth/cmd/down.go`
+- Create: `lane/cmd/down.go`
 
 - [ ] **Step 1: Implement**
 
@@ -1844,10 +1844,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/dheerajnalapat/berth/internal/gitx"
-	"github.com/dheerajnalapat/berth/internal/manifest"
-	"github.com/dheerajnalapat/berth/internal/paths"
-	"github.com/dheerajnalapat/berth/internal/slug"
+	"github.com/dheerajnalapat/lane/internal/gitx"
+	"github.com/dheerajnalapat/lane/internal/manifest"
+	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 
@@ -1865,13 +1865,13 @@ func runDown(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	m, err := manifest.Load(filepath.Join(dir, ".berth.toml"))
+	m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 	if err != nil {
 		return err
 	}
 	wt, _, _ := gitx.Worktree(dir)
 	sl := slug.Resolve(slug.Inputs{
-		Flag: flagSlug, Env: os.Getenv("BERTH_SLUG"),
+		Flag: flagSlug, Env: os.Getenv("LANE_SLUG"),
 		ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir),
 	})
 
@@ -1895,7 +1895,7 @@ func runDown(cmd *cobra.Command, args []string) error {
 
 	_ = os.Remove(overridePath)
 	_ = os.Remove(filepath.Join(paths.TraefikDynamic(), sl+".yml"))
-	fmt.Printf("berth: %s torn down\n", sl)
+	fmt.Printf("lane: %s torn down\n", sl)
 	return nil
 }
 ```
@@ -1909,17 +1909,17 @@ Expected: builds.
 
 ```bash
 git add cmd/down.go
-git commit -m "feat: berth down — teardown + cleanup, repo left pristine"
+git commit -m "feat: lane down — teardown + cleanup, repo left pristine"
 ```
 
 ---
 
 ## Phase 5 — Inventory and view
 
-### Task 15: `berth ls`
+### Task 15: `lane ls`
 
 **Files:**
-- Create: `berth/cmd/ls.go`
+- Create: `lane/cmd/ls.go`
 
 - [ ] **Step 1: Implement**
 
@@ -1932,13 +1932,13 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/dheerajnalapat/berth/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 
 var lsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "List running berth stacks",
+	Short: "List running lane stacks",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stacks, err := dockerx.List()
 		if err != nil {
@@ -1971,7 +1971,7 @@ Expected: header row (empty if nothing running).
 
 ```bash
 git add cmd/ls.go
-git commit -m "feat: berth ls"
+git commit -m "feat: lane ls"
 ```
 
 ---
@@ -1979,8 +1979,8 @@ git commit -m "feat: berth ls"
 ### Task 16: Traefik API client
 
 **Files:**
-- Create: `berth/internal/traefikapi/traefikapi.go`
-- Test: `berth/internal/traefikapi/traefikapi_test.go`
+- Create: `lane/internal/traefikapi/traefikapi.go`
+- Test: `lane/internal/traefikapi/traefikapi_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2043,7 +2043,7 @@ type Client struct {
 	HTTP    *http.Client
 }
 
-// Default returns a Client pointed at the local berth proxy API.
+// Default returns a Client pointed at the local lane proxy API.
 func Default() *Client {
 	return &Client{BaseURL: "http://127.0.0.1:8080", HTTP: &http.Client{Timeout: 2 * time.Second}}
 }
@@ -2077,10 +2077,10 @@ git commit -m "feat: traefik API client for live routing"
 
 ---
 
-### Task 17: `berth view` (TUI control panel)
+### Task 17: `lane view` (TUI control panel)
 
 **Files:**
-- Create: `berth/cmd/view.go`, `berth/internal/ui/view.go`
+- Create: `lane/cmd/view.go`, `lane/internal/ui/view.go`
 
 - [ ] **Step 1: Add dependencies**
 
@@ -2092,7 +2092,7 @@ go get github.com/charmbracelet/bubbletea@latest github.com/charmbracelet/lipglo
 
 `internal/ui/view.go`:
 ```go
-// Package ui renders the berth view control panel.
+// Package ui renders the lane view control panel.
 package ui
 
 import (
@@ -2101,8 +2101,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/dheerajnalapat/berth/internal/stack"
-	"github.com/dheerajnalapat/berth/internal/traefikapi"
+	"github.com/dheerajnalapat/lane/internal/stack"
+	"github.com/dheerajnalapat/lane/internal/traefikapi"
 )
 
 var (
@@ -2124,9 +2124,9 @@ func Render(stacks []stack.Stack, routers []traefikapi.Router) string {
 	}
 
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("⚓ berth — running stacks") + "\n\n")
+	b.WriteString(titleStyle.Render("⚓ lane — running stacks") + "\n\n")
 	if len(stacks) == 0 {
-		b.WriteString(dimStyle.Render("  (none — run `berth up` in a project)\n"))
+		b.WriteString(dimStyle.Render("  (none — run `lane up` in a project)\n"))
 		return b.String()
 	}
 	sort.Slice(stacks, func(i, j int) bool { return stacks[i].Slug < stacks[j].Slug })
@@ -2161,8 +2161,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dheerajnalapat/berth/internal/stack"
-	"github.com/dheerajnalapat/berth/internal/traefikapi"
+	"github.com/dheerajnalapat/lane/internal/stack"
+	"github.com/dheerajnalapat/lane/internal/traefikapi"
 )
 
 func TestRender(t *testing.T) {
@@ -2196,9 +2196,9 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/dheerajnalapat/berth/internal/dockerx"
-	"github.com/dheerajnalapat/berth/internal/traefikapi"
-	"github.com/dheerajnalapat/berth/internal/ui"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/traefikapi"
+	"github.com/dheerajnalapat/lane/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -2260,18 +2260,18 @@ go run . view --watch    # press a key to exit
 
 ```bash
 git add cmd/view.go internal/ui/ go.mod go.sum
-git commit -m "feat: berth view control panel (static + --watch)"
+git commit -m "feat: lane view control panel (static + --watch)"
 ```
 
 ---
 
 ## Phase 6 — Helper commands
 
-### Task 18: `berth doctor`
+### Task 18: `lane doctor`
 
 **Files:**
-- Create: `berth/cmd/doctor.go`, `berth/internal/doctor/doctor.go`
-- Test: `berth/internal/doctor/doctor_test.go`
+- Create: `lane/cmd/doctor.go`, `lane/internal/doctor/doctor.go`
+- Test: `lane/internal/doctor/doctor_test.go`
 
 - [ ] **Step 1: Write the failing test (version parse)**
 
@@ -2306,7 +2306,7 @@ Expected: FAIL — `undefined: composeOK`.
 
 `internal/doctor/doctor.go`:
 ```go
-// Package doctor runs berth preflight checks.
+// Package doctor runs lane preflight checks.
 package doctor
 
 import (
@@ -2357,7 +2357,7 @@ func Run() []Check {
 	checks = append(checks, Check{"tilt installed", err == nil, "install Tilt: https://tilt.dev"})
 
 	// *.localhost resolves to loopback?
-	addrs, _ := net.LookupHost("berth-check.localhost")
+	addrs, _ := net.LookupHost("lane-check.localhost")
 	loop := false
 	for _, a := range addrs {
 		if a == "127.0.0.1" || a == "::1" {
@@ -2396,13 +2396,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dheerajnalapat/berth/internal/doctor"
+	"github.com/dheerajnalapat/lane/internal/doctor"
 	"github.com/spf13/cobra"
 )
 
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
-	Short: "Check that the environment is ready for berth",
+	Short: "Check that the environment is ready for lane",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report, ok := doctor.Report()
 		fmt.Print(report)
@@ -2427,16 +2427,16 @@ Expected: PASS; doctor prints checks (✓ for docker/compose/tilt/localhost on t
 
 ```bash
 git add cmd/doctor.go internal/doctor/
-git commit -m "feat: berth doctor preflight checks"
+git commit -m "feat: lane doctor preflight checks"
 ```
 
 ---
 
-### Task 19: `berth init`
+### Task 19: `lane init`
 
 **Files:**
-- Create: `berth/cmd/init.go`, `berth/internal/scaffold/scaffold.go`
-- Test: `berth/internal/scaffold/scaffold_test.go`
+- Create: `lane/cmd/init.go`, `lane/internal/scaffold/scaffold.go`
+- Test: `lane/internal/scaffold/scaffold_test.go`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2478,8 +2478,8 @@ Expected: FAIL — `undefined: GuessWebEntry`.
 
 `internal/scaffold/scaffold.go`:
 ```go
-// Package scaffold powers `berth init`: guess the web entrypoint and render
-// a starter .berth.toml.
+// Package scaffold powers `lane init`: guess the web entrypoint and render
+// a starter .lane.toml.
 package scaffold
 
 import (
@@ -2542,7 +2542,7 @@ func GuessWebEntry(composeYAML string) (string, int) {
 	return "", 0
 }
 
-// RenderManifest produces .berth.toml content.
+// RenderManifest produces .lane.toml content.
 func RenderManifest(name, composeFile, service string, port int) string {
 	return fmt.Sprintf(`name = "%s"
 compose_file = "%s"
@@ -2587,7 +2587,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/berth/internal/scaffold"
+	"github.com/dheerajnalapat/lane/internal/scaffold"
 	"github.com/spf13/cobra"
 )
 
@@ -2595,12 +2595,12 @@ var flagCompose string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Scaffold a .berth.toml for the current project",
+	Short: "Scaffold a .lane.toml for the current project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := os.Getwd()
-		manifestPath := filepath.Join(dir, ".berth.toml")
+		manifestPath := filepath.Join(dir, ".lane.toml")
 		if _, err := os.Stat(manifestPath); err == nil {
-			return errors.New(".berth.toml already exists")
+			return errors.New(".lane.toml already exists")
 		}
 
 		composeRel := flagCompose
@@ -2622,13 +2622,13 @@ var initCmd = &cobra.Command{
 		}
 		svc, port := scaffold.GuessWebEntry(string(body))
 		if svc == "" {
-			return errors.New("could not guess a web entrypoint; edit .berth.toml manually after creation")
+			return errors.New("could not guess a web entrypoint; edit .lane.toml manually after creation")
 		}
 		out := scaffold.RenderManifest(filepath.Base(dir), composeRel, svc, port)
 		if err := os.WriteFile(manifestPath, []byte(out), 0o644); err != nil {
 			return err
 		}
-		fmt.Printf("wrote .berth.toml (routing %s:%d). Review it, then `berth up`.\n", svc, port)
+		fmt.Printf("wrote .lane.toml (routing %s:%d). Review it, then `lane up`.\n", svc, port)
 		return nil
 	},
 }
@@ -2648,15 +2648,15 @@ Expected: PASS, builds.
 
 ```bash
 git add cmd/init.go internal/scaffold/
-git commit -m "feat: berth init scaffolds .berth.toml"
+git commit -m "feat: lane init scaffolds .lane.toml"
 ```
 
 ---
 
-### Task 20: `berth open` and `berth logs`
+### Task 20: `lane open` and `lane logs`
 
 **Files:**
-- Create: `berth/cmd/open.go`, `berth/cmd/logs.go`
+- Create: `lane/cmd/open.go`, `lane/cmd/logs.go`
 
 - [ ] **Step 1: Implement `open`**
 
@@ -2669,7 +2669,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/dheerajnalapat/berth/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 
@@ -2714,10 +2714,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/berth/internal/gitx"
-	"github.com/dheerajnalapat/berth/internal/manifest"
-	"github.com/dheerajnalapat/berth/internal/paths"
-	"github.com/dheerajnalapat/berth/internal/slug"
+	"github.com/dheerajnalapat/lane/internal/gitx"
+	"github.com/dheerajnalapat/lane/internal/manifest"
+	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 
@@ -2732,12 +2732,12 @@ var logsCmd = &cobra.Command{
 		}
 		sl := flagSlug
 		if sl == "" {
-			m, err := manifest.Load(filepath.Join(dir, ".berth.toml"))
+			m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 			if err != nil {
 				return err
 			}
 			wt, _, _ := gitx.Worktree(dir)
-			sl = slug.Resolve(slug.Inputs{ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir), Env: os.Getenv("BERTH_SLUG")})
+			sl = slug.Resolve(slug.Inputs{ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir), Env: os.Getenv("LANE_SLUG")})
 		}
 
 		// Detached run → tail the log file; else stream compose logs.
@@ -2766,7 +2766,7 @@ Expected: builds, vet clean, all unit tests pass.
 
 ```bash
 git add cmd/open.go cmd/logs.go
-git commit -m "feat: berth open and berth logs"
+git commit -m "feat: lane open and lane logs"
 ```
 
 ---
@@ -2775,16 +2775,16 @@ git commit -m "feat: berth open and berth logs"
 
 This is the real-world acceptance test: two worktrees of ReMind running at once, both reachable.
 
-### Task 21: Make ReMind's Tiltfile berth-aware + add manifest
+### Task 21: Make ReMind's Tiltfile lane-aware + add manifest
 
 **Files:**
 - Modify: `/home/dheerajnalapat/project/ReMind/Tiltfile` (docker branch only)
-- Create: `/home/dheerajnalapat/project/ReMind/.berth.toml`
-- Modify: `/home/dheerajnalapat/project/ReMind/.gitignore` (ignore nothing new — overrides live in ~/.berth)
+- Create: `/home/dheerajnalapat/project/ReMind/.lane.toml`
+- Modify: `/home/dheerajnalapat/project/ReMind/.gitignore` (ignore nothing new — overrides live in ~/.lane)
 
 - [ ] **Step 1: Add the manifest**
 
-`/home/dheerajnalapat/project/ReMind/.berth.toml`:
+`/home/dheerajnalapat/project/ReMind/.lane.toml`:
 ```toml
 name = "remind"
 compose_file = "infra/docker-compose.yml"
@@ -2794,22 +2794,22 @@ service = "ui"
 port = 80
 ```
 
-(ReMind's docker-mode `ui` is a static nginx build on :80 — berth just routes it. No Vite/HMR changes; that's the service-agnostic design.)
+(ReMind's docker-mode `ui` is a static nginx build on :80 — lane just routes it. No Vite/HMR changes; that's the service-agnostic design.)
 
-- [ ] **Step 2: Make the Tiltfile pick up berth's override + slug-namespaced images**
+- [ ] **Step 2: Make the Tiltfile pick up lane's override + slug-namespaced images**
 
-In `/home/dheerajnalapat/project/ReMind/Tiltfile`, replace the `docker_compose("./infra/docker-compose.yml")` call inside the `if use_docker:` branch with the berth-aware shim, and namespace the built image tags by slug:
+In `/home/dheerajnalapat/project/ReMind/Tiltfile`, replace the `docker_compose("./infra/docker-compose.yml")` call inside the `if use_docker:` branch with the lane-aware shim, and namespace the built image tags by slug:
 
 ```python
 if use_docker:
-    # --- berth integration (active only under `berth up`) ---
-    berth_slug = os.getenv("BERTH_SLUG", "")
-    tag = (":" + berth_slug) if berth_slug else ""
+    # --- lane integration (active only under `lane up`) ---
+    lane_slug = os.getenv("LANE_SLUG", "")
+    tag = (":" + lane_slug) if lane_slug else ""
 
     compose_files = ["./infra/docker-compose.yml"]
-    berth_override = os.getenv("BERTH_COMPOSE_OVERRIDE", "")
-    if berth_override:
-        compose_files.append(berth_override)
+    lane_override = os.getenv("LANE_COMPOSE_OVERRIDE", "")
+    if lane_override:
+        compose_files.append(lane_override)
     docker_compose(compose_files)
 
     docker_build(
@@ -2840,26 +2840,26 @@ if use_docker:
     dc_resource("ui", labels=["frontend"])
 ```
 
-If image tags are namespaced, the override must also set each built service's `image:` to the slug tag. Extend `override.Generate` to accept an optional `ImageTag string` and, for services in a provided `BuiltServices` set, emit `image: "<base>:<slug>"`. **However**, since the base image name lives in the compose `image:` field, the simplest correct approach for v1 is: have the Tiltfile set the tag (as above) AND add `image` overrides in `.berth.toml` is overkill — instead, document that for full image isolation the project sets `image: remind/platform-server:${BERTH_SLUG:-latest}` in its compose. For ReMind v1, accept shared image tags (live_update syncs into each stack's own containers; full-rebuild cross-contamination is a known, documented v1 limitation — see spec "Deferred"). Keep the Tiltfile `tag` wiring so enabling it later is a one-line change.
+If image tags are namespaced, the override must also set each built service's `image:` to the slug tag. Extend `override.Generate` to accept an optional `ImageTag string` and, for services in a provided `BuiltServices` set, emit `image: "<base>:<slug>"`. **However**, since the base image name lives in the compose `image:` field, the simplest correct approach for v1 is: have the Tiltfile set the tag (as above) AND add `image` overrides in `.lane.toml` is overkill — instead, document that for full image isolation the project sets `image: remind/platform-server:${LANE_SLUG:-latest}` in its compose. For ReMind v1, accept shared image tags (live_update syncs into each stack's own containers; full-rebuild cross-contamination is a known, documented v1 limitation — see spec "Deferred"). Keep the Tiltfile `tag` wiring so enabling it later is a one-line change.
 
 > **Decision for v1:** ship without per-slug image tags wired all the way through (keep the Tiltfile hook in place, default tag empty). Add a line to the spec's "Deferred" section: *"Per-slug image-tag isolation — hook present in Tiltfile, not enabled by default in v1."* This keeps the task tractable and honest.
 
 - [ ] **Step 3: Update the spec's Deferred section**
 
-Add to `docs/2026-06-08-berth-design.md` under "Deferred (post-v1)":
+Add to `docs/2026-06-08-lane-design.md` under "Deferred (post-v1)":
 ```markdown
-- **Per-slug image-tag isolation** — the Tiltfile hook (`:${BERTH_SLUG}`) is in
+- **Per-slug image-tag isolation** — the Tiltfile hook (`:${LANE_SLUG}`) is in
   place but disabled by default in v1. Until enabled, two worktrees share built
   image tags; live_update isolates active edits, but a simultaneous full rebuild
   in one worktree can update the shared tag the other uses. Enable by setting
   per-slug `image:` tags in compose + the Tiltfile tag var.
 ```
 
-- [ ] **Step 4: Commit (berth repo) the spec update**
+- [ ] **Step 4: Commit (lane repo) the spec update**
 
 ```bash
-cd /home/dheerajnalapat/project/berth
-git add docs/2026-06-08-berth-design.md
+cd /home/dheerajnalapat/project/lane
+git add docs/2026-06-08-lane-design.md
 git commit -m "docs: note per-slug image-tag isolation deferred to post-v1"
 ```
 
@@ -2874,21 +2874,21 @@ git commit -m "docs: note per-slug image-tag isolation deferred to post-v1"
 - [ ] **Step 1: Build + install the binary**
 
 ```bash
-cd /home/dheerajnalapat/project/berth
-go build -o /usr/local/bin/berth .   # or: go install .
-berth doctor
+cd /home/dheerajnalapat/project/lane
+go build -o /usr/local/bin/lane .   # or: go install .
+lane doctor
 ```
 Expected: all checks ✓.
 
 - [ ] **Step 2: Start the proxy and bring up main ReMind**
 
 ```bash
-berth proxy up
+lane proxy up
 cd /home/dheerajnalapat/project/ReMind
-berth up -d
-berth ls
+lane up -d
+lane ls
 ```
-Expected: `berth ls` shows `remind` with URL `http://remind.localhost`. Visit `http://remind.localhost` and `http://tilt-remind.localhost` — both load.
+Expected: `lane ls` shows `remind` with URL `http://remind.localhost`. Visit `http://remind.localhost` and `http://tilt-remind.localhost` — both load.
 
 - [ ] **Step 3: Create a worktree and bring it up simultaneously**
 
@@ -2896,26 +2896,26 @@ Expected: `berth ls` shows `remind` with URL `http://remind.localhost`. Visit `h
 cd /home/dheerajnalapat/project/ReMind
 git worktree add ../remind-featx -b featx
 cd ../remind-featx
-berth up -d
-berth ls
+lane up -d
+lane ls
 ```
-Expected: `berth ls` shows BOTH `remind` and `remind-featx`, each with its own URL. Visit `http://remind.localhost` and `http://remind-featx.localhost` — both load **at the same time**, no port conflict. `berth view` shows both stacks and their live Traefik routes.
+Expected: `lane ls` shows BOTH `remind` and `remind-featx`, each with its own URL. Visit `http://remind.localhost` and `http://remind-featx.localhost` — both load **at the same time**, no port conflict. `lane view` shows both stacks and their live Traefik routes.
 
 - [ ] **Step 4: Verify isolation and teardown**
 
 ```bash
-berth view              # confirm two independent stacks + routes
-cd /home/dheerajnalapat/project/remind-featx && berth down
-cd /home/dheerajnalapat/project/ReMind && berth down
-berth ls                # empty
-git -C /home/dheerajnalapat/project/ReMind status --short   # clean: no committed files changed by berth
+lane view              # confirm two independent stacks + routes
+cd /home/dheerajnalapat/project/remind-featx && lane down
+cd /home/dheerajnalapat/project/ReMind && lane down
+lane ls                # empty
+git -C /home/dheerajnalapat/project/ReMind status --short   # clean: no committed files changed by lane
 ```
-Expected: both torn down; `berth ls` empty; ReMind working tree clean (proves non-invasiveness — overrides lived in ~/.berth).
+Expected: both torn down; `lane ls` empty; ReMind working tree clean (proves non-invasiveness — overrides lived in ~/.lane).
 
 - [ ] **Step 5: Commit a short acceptance note**
 
 ```bash
-cd /home/dheerajnalapat/project/berth
+cd /home/dheerajnalapat/project/lane
 mkdir -p docs
 printf '%s\n' "# Acceptance: ReMind two-worktree run verified $(date +%F)" > docs/acceptance-remind.md
 git add docs/acceptance-remind.md
@@ -2929,7 +2929,7 @@ git commit -m "docs: record ReMind two-worktree acceptance"
 ### Task 23: GoReleaser + install script
 
 **Files:**
-- Create: `berth/.goreleaser.yaml`, `berth/install.sh`, `berth/.github/workflows/release.yml`
+- Create: `lane/.goreleaser.yaml`, `lane/install.sh`, `lane/.github/workflows/release.yml`
 
 - [ ] **Step 1: GoReleaser config**
 
@@ -2938,18 +2938,18 @@ git commit -m "docs: record ReMind two-worktree acceptance"
 version: 2
 builds:
   - main: .
-    binary: berth
+    binary: lane
     env: [CGO_ENABLED=0]
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 archives:
   - formats: [tar.gz]
-    name_template: "berth_{{ .Os }}_{{ .Arch }}"
+    name_template: "lane_{{ .Os }}_{{ .Arch }}"
 brews:
   - repository:
       owner: dheerajnalapat        # adjust to real tap repo
-      name: homebrew-berth
-    homepage: "https://github.com/dheerajnalapat/berth"
+      name: homebrew-lane
+    homepage: "https://github.com/dheerajnalapat/lane"
     description: "Run many project stacks at once with zero port conflicts"
 checksum:
   name_template: "checksums.txt"
@@ -2961,15 +2961,15 @@ checksum:
 ```bash
 #!/usr/bin/env sh
 set -e
-REPO="dheerajnalapat/berth"   # adjust
+REPO="dheerajnalapat/lane"   # adjust
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m); [ "$ARCH" = "x86_64" ] && ARCH=amd64; [ "$ARCH" = "aarch64" ] && ARCH=arm64
-URL="https://github.com/$REPO/releases/latest/download/berth_${OS}_${ARCH}.tar.gz"
+URL="https://github.com/$REPO/releases/latest/download/lane_${OS}_${ARCH}.tar.gz"
 TMP=$(mktemp -d)
 echo "downloading $URL"
 curl -sSL "$URL" | tar -xz -C "$TMP"
-install -m 0755 "$TMP/berth" /usr/local/bin/berth
-echo "installed berth to /usr/local/bin/berth"
+install -m 0755 "$TMP/lane" /usr/local/bin/lane
+echo "installed lane to /usr/local/bin/lane"
 ```
 
 - [ ] **Step 3: CI workflow**
@@ -3017,6 +3017,6 @@ git commit -m "build: GoReleaser release pipeline + install script"
 
 - [ ] `go test ./...` — all unit tests pass.
 - [ ] `go vet ./...` — clean.
-- [ ] `berth doctor` — green on the dev machine.
+- [ ] `lane doctor` — green on the dev machine.
 - [ ] Phase 7 acceptance (two ReMind worktrees reachable simultaneously) passed.
 - [ ] `git -C ReMind status` clean after teardown (non-invasiveness proven).

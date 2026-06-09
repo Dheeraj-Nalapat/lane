@@ -6,16 +6,16 @@ import (
 )
 
 func TestRenderCompose(t *testing.T) {
-	out, err := renderCompose("berth", "/tmp/berth/traefik/dynamic")
+	out, err := renderCompose("lane", "/tmp/lane/traefik/dynamic")
 	if err != nil {
 		t.Fatalf("render error: %v", err)
 	}
 	s := string(out)
 	for _, want := range []string{
 		"image: traefik:v3.1",
-		"--providers.docker.network=berth",
+		"--providers.docker.network=lane",
 		"host.docker.internal:host-gateway",
-		"/tmp/berth/traefik/dynamic:/dynamic:ro",
+		"/tmp/lane/traefik/dynamic:/dynamic:ro",
 		"external: true",
 	} {
 		if !strings.Contains(s, want) {

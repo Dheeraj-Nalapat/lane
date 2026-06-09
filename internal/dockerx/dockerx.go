@@ -1,4 +1,4 @@
-// Package dockerx queries Docker for berth-managed containers.
+// Package dockerx queries Docker for lane-managed containers.
 package dockerx
 
 import (
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dheerajnalapat/berth/internal/stack"
+	"github.com/dheerajnalapat/lane/internal/stack"
 )
 
 type psLine struct {
@@ -37,23 +37,23 @@ func parsePS(out []byte) []stack.Stack {
 			continue
 		}
 		lbl := labelMap(p.Labels)
-		sl := lbl["berth.slug"]
+		sl := lbl["lane.slug"]
 		if sl == "" {
 			continue
 		}
 		s := bySlug[sl]
 		if s == nil {
-			s = &stack.Stack{Slug: sl, ProjectPath: lbl["berth.project.path"]}
+			s = &stack.Stack{Slug: sl, ProjectPath: lbl["lane.project.path"]}
 			bySlug[sl] = s
 		}
 		s.Containers = append(s.Containers, p.Names)
 		if p.State == "running" {
 			s.Running = true
 		}
-		if u := lbl["berth.url"]; u != "" {
+		if u := lbl["lane.url"]; u != "" {
 			s.URL = u
 		}
-		if tp := lbl["berth.tilt.port"]; tp != "" {
+		if tp := lbl["lane.tilt.port"]; tp != "" {
 			s.TiltPort, _ = strconv.Atoi(tp)
 		}
 	}
@@ -64,11 +64,11 @@ func parsePS(out []byte) []stack.Stack {
 	return out2
 }
 
-// List returns all berth-managed stacks (excludes the proxy).
+// List returns all lane-managed stacks (excludes the proxy).
 func List() ([]stack.Stack, error) {
 	cmd := exec.Command("docker", "ps", "-a",
-		"--filter", "label=berth.managed=true",
-		"--filter", "label=berth.slug",
+		"--filter", "label=lane.managed=true",
+		"--filter", "label=lane.slug",
 		"--format", "{{json .}}")
 	out, err := cmd.Output()
 	if err != nil {

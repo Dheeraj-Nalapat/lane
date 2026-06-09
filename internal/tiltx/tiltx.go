@@ -33,7 +33,7 @@ func RenderDynamicRoute(slug string, port int) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// UpArgs returns the args for `tilt up` in berth's docker mode on a given port.
+// UpArgs returns the args for `tilt up` in lane's docker mode on a given port.
 // Tilt's own flags (--host, --port) must come BEFORE the `--` separator;
 // everything after `--` is passed to the Tiltfile's config.parse (here just
 // --docker). --host 0.0.0.0 is required so the Tilt UI is reachable from the

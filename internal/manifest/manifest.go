@@ -1,4 +1,4 @@
-// Package manifest loads the committed .berth.toml project descriptor.
+// Package manifest loads the committed .lane.toml project descriptor.
 package manifest
 
 import (
@@ -15,7 +15,7 @@ type Route struct {
 	Host    string `toml:"host"`    // optional host template, default "{slug}"
 }
 
-// Manifest is the parsed .berth.toml.
+// Manifest is the parsed .lane.toml.
 type Manifest struct {
 	Name        string  `toml:"name"`         // base slug
 	ComposeFile string  `toml:"compose_file"` // path to base compose, relative to project dir
@@ -23,27 +23,27 @@ type Manifest struct {
 	Routes      []Route `toml:"routes"`
 }
 
-// Load reads and validates a .berth.toml at path.
+// Load reads and validates a .lane.toml at path.
 func Load(path string) (*Manifest, error) {
 	var m Manifest
 	if _, err := toml.DecodeFile(path, &m); err != nil {
 		return nil, fmt.Errorf("reading %s: %w", path, err)
 	}
 	if m.Name == "" {
-		return nil, errors.New(".berth.toml: 'name' is required")
+		return nil, errors.New(".lane.toml: 'name' is required")
 	}
 	if m.ComposeFile == "" {
-		return nil, errors.New(".berth.toml: 'compose_file' is required")
+		return nil, errors.New(".lane.toml: 'compose_file' is required")
 	}
 	if len(m.Routes) == 0 {
-		return nil, errors.New(".berth.toml: at least one [[routes]] entry is required")
+		return nil, errors.New(".lane.toml: at least one [[routes]] entry is required")
 	}
 	for i := range m.Routes {
 		if m.Routes[i].Host == "" {
 			m.Routes[i].Host = "{slug}"
 		}
 		if m.Routes[i].Service == "" || m.Routes[i].Port == 0 {
-			return nil, fmt.Errorf(".berth.toml: route %d needs both 'service' and 'port'", i)
+			return nil, fmt.Errorf(".lane.toml: route %d needs both 'service' and 'port'", i)
 		}
 	}
 	return &m, nil

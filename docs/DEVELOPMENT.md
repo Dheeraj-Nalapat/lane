@@ -1,9 +1,9 @@
-# berth — Developer Guide
+# lane — Developer Guide
 
-Internals, conventions, build/test/reinstall, and how to extend berth. For
-*using* berth, see the top-level [`README.md`](../README.md). For the design
-rationale, see [`docs/2026-06-08-berth-design.md`](2026-06-08-berth-design.md);
-for the original task breakdown, [`docs/plans/2026-06-09-berth-implementation.md`](plans/2026-06-09-berth-implementation.md).
+Internals, conventions, build/test/reinstall, and how to extend lane. For
+*using* lane, see the top-level [`README.md`](../README.md). For the design
+rationale, see [`docs/2026-06-08-lane-design.md`](2026-06-08-lane-design.md);
+for the original task breakdown, [`docs/plans/2026-06-09-lane-implementation.md`](plans/2026-06-09-lane-implementation.md).
 
 ---
 
@@ -24,7 +24,7 @@ go test ./...                        # unit tests (no Docker needed)
 go vet ./...                         # static checks
 
 # install/refresh the binary on your PATH (current local workflow)
-go build -o ~/.local/bin/berth .
+go build -o ~/.local/bin/lane .
 hash -r                              # if an open shell still can't find it
 
 # cross-platform snapshot build (no publishing) — verifies all targets compile
@@ -32,14 +32,14 @@ goreleaser build --snapshot --clean  # outputs to dist/
 goreleaser check                     # validates .goreleaser.yaml (needs a git remote)
 ```
 
-There is **no separate "reinstall" step** — `go build -o ~/.local/bin/berth .`
+There is **no separate "reinstall" step** — `go build -o ~/.local/bin/lane .`
 overwrites the binary in place. The installed binary is a static copy; rebuild
 after any code change. (Published installs via Homebrew / `curl|sh` handle this
 for end users; local dev uses the one build command.)
 
 ### Editor / module
 
-- Module path: `github.com/dheerajnalapat/berth` (in `go.mod`). **Change this to
+- Module path: `github.com/dheerajnalapat/lane` (in `go.mod`). **Change this to
   your real GitHub path before publishing** — it appears in every internal import
   and in `.goreleaser.yaml` / `install.sh`. A repo-wide find/replace of the module
   string is enough.
@@ -49,7 +49,7 @@ for end users; local dev uses the one build command.)
 ## Repository layout
 
 ```
-berth/
+lane/
   main.go                  entrypoint → cmd.Execute()
   cmd/                     cobra commands (thin; delegate to internal/)
     root.go                root command + global flags (--slug, --dry-run, -v)
@@ -59,20 +59,20 @@ berth/
   internal/                all logic; unit-tested
     ports/                 free TCP port allocation
     gitx/                  linked-worktree detection + name
-    manifest/              .berth.toml load + validate
+    manifest/              .lane.toml load + validate
     slug/                  sanitize + derive + resolution ladder
     compose/               read service names from base compose
     override/              generate the compose override (!reset, labels, network)
     identity/              render hostnames from route templates
-    paths/                 ~/.berth dir layout (honors BERTH_HOME)
+    paths/                 ~/.lane dir layout (honors LANE_HOME)
     proxy/                 Traefik lifecycle + embedded compose template
     tiltx/                 tilt up args + Tilt-UI Traefik file-provider route
-    dockerx/               query berth-managed containers via labels → []Stack
+    dockerx/               query lane-managed containers via labels → []Stack
     traefikapi/            read live routers from the Traefik API
     stack/                 shared Stack model
     doctor/                preflight checks
-    scaffold/              `berth init` compose inspection + manifest rendering
-    ui/                    `berth view` lipgloss rendering
+    scaffold/              `lane init` compose inspection + manifest rendering
+    ui/                    `lane view` lipgloss rendering
   .goreleaser.yaml  install.sh  .github/workflows/release.yml
   docs/                    design spec, plan, onboarding, this guide
 ```
@@ -85,7 +85,7 @@ packages that are independently testable. Tests sit next to code as
 
 ## Architecture in one pass
 
-`berth up` (see `cmd/up.go`) is the spine and shows how the packages compose:
+`lane up` (see `cmd/up.go`) is the spine and shows how the packages compose:
 
 1. `gitx.Worktree` + `manifest.Load` + `slug.Resolve` → the **slug**.
 2. `dockerx.SlugOwner` → collision check (refuse if the slug is claimed by a
@@ -99,22 +99,22 @@ packages that are independently testable. Tests sit next to code as
 7. Set env + `exec` Tilt with `tiltx.UpArgs(port)`.
 
 `ls`/`view`/`down` derive everything from Docker labels (`dockerx`) and the
-Traefik API (`traefikapi`) — **berth keeps no state file**. The only runtime
+Traefik API (`traefikapi`) — **lane keeps no state file**. The only runtime
 state is a detached-run pidfile under `paths.Run()`.
 
 ### The integration contract (critical, learned from live testing)
 
-berth's only hooks into a project are **environment variables** and a **generated
+lane's only hooks into a project are **environment variables** and a **generated
 compose override**. The project's Tiltfile must cooperate:
 
-- **`tilt up --host 0.0.0.0 --port <free> -- --docker`** is what berth invokes.
+- **`tilt up --host 0.0.0.0 --port <free> -- --docker`** is what lane invokes.
   Tilt flags (`--host`, `--port`) must precede `--`; everything after `--` goes to
   the Tiltfile's `config.parse()`. The Tiltfile must `config.define_bool("docker")`.
 - **`--host 0.0.0.0`** is required so the Tilt UI is reachable from the Traefik
   container via `host.docker.internal` (Tilt binds `localhost` otherwise → 502).
 - **Tilt ignores `COMPOSE_PROJECT_NAME`.** The Tiltfile shim must pass
-  `docker_compose(..., project_name=os.getenv("BERTH_SLUG"))`, or isolation and
-  `berth down` key off the directory name instead of the slug.
+  `docker_compose(..., project_name=os.getenv("LANE_SLUG"))`, or isolation and
+  `lane down` key off the directory name instead of the slug.
 
 These three were real bugs found during live acceptance; if you change `tiltx` or
 the documented shim, preserve all three.
@@ -133,7 +133,7 @@ a future yaml.v3 changes tag emission, the fallback is a sentinel value +
 
 `internal/proxy` embeds `traefik-compose.yml.tmpl` (kept **inside** the package —
 `//go:embed` forbids parent paths) and renders it with the network name + dynamic
-dir. Traefik runs as container `berth-proxy` on the external `berth` network, owns
+dir. Traefik runs as container `lane-proxy` on the external `lane` network, owns
 `:80`, exposes its API/dashboard on `127.0.0.1:8080`, mounts the Docker socket
 (docker provider) and the dynamic dir (file provider), and is launched with
 `host.docker.internal:host-gateway` so file-provider routes can reach host
@@ -150,39 +150,39 @@ processes (the Tilt UI).
 
   ```bash
   # two trivial stacks (traefik/whoami) that both hardcode container_name and
-  # publish the same host port — if both come up, berth's port-strip works.
-  mkdir -p /tmp/berth-smoke/{a,b}
+  # publish the same host port — if both come up, lane's port-strip works.
+  mkdir -p /tmp/lane-smoke/{a,b}
   for d in a b; do
-    cat > /tmp/berth-smoke/$d/docker-compose.yml <<'EOF'
+    cat > /tmp/lane-smoke/$d/docker-compose.yml <<'EOF'
   services:
     web:
       image: traefik/whoami
       container_name: demo-web
       ports: ["8099:80"]
   EOF
-    cat > /tmp/berth-smoke/$d/Tiltfile <<'EOF'
+    cat > /tmp/lane-smoke/$d/Tiltfile <<'EOF'
   config.define_bool("docker"); config.parse()
   files = ["./docker-compose.yml"]
-  ov = os.getenv("BERTH_COMPOSE_OVERRIDE", "")
+  ov = os.getenv("LANE_COMPOSE_OVERRIDE", "")
   if ov: files.append(ov)
-  s = os.getenv("BERTH_SLUG", "")
+  s = os.getenv("LANE_SLUG", "")
   docker_compose(files, project_name=s) if s else docker_compose(files)
   EOF
   done
-  printf 'name="demoa"\ncompose_file="docker-compose.yml"\n[[routes]]\nservice="web"\nport=80\n' > /tmp/berth-smoke/a/.berth.toml
-  printf 'name="demob"\ncompose_file="docker-compose.yml"\n[[routes]]\nservice="web"\nport=80\n' > /tmp/berth-smoke/b/.berth.toml
+  printf 'name="demoa"\ncompose_file="docker-compose.yml"\n[[routes]]\nservice="web"\nport=80\n' > /tmp/lane-smoke/a/.lane.toml
+  printf 'name="demob"\ncompose_file="docker-compose.yml"\n[[routes]]\nservice="web"\nport=80\n' > /tmp/lane-smoke/b/.lane.toml
 
-  berth proxy up
-  (cd /tmp/berth-smoke/a && berth up -d)
-  (cd /tmp/berth-smoke/b && berth up -d)
+  lane proxy up
+  (cd /tmp/lane-smoke/a && lane up -d)
+  (cd /tmp/lane-smoke/b && lane up -d)
   curl -s http://demoa.localhost/ | grep Host:    # → Host: demoa.localhost
   curl -s http://demob.localhost/ | grep Host:    # → Host: demob.localhost (different backend)
-  berth view
-  (cd /tmp/berth-smoke/a && berth down); (cd /tmp/berth-smoke/b && berth down)
-  berth proxy down; rm -rf /tmp/berth-smoke
+  lane view
+  (cd /tmp/lane-smoke/a && lane down); (cd /tmp/lane-smoke/b && lane down)
+  lane proxy down; rm -rf /tmp/lane-smoke
   ```
 
-- Run `berth up --dry-run` in any onboarded project to inspect the generated
+- Run `lane up --dry-run` in any onboarded project to inspect the generated
   override and the exact Tilt command/env without starting anything.
 
 ---
@@ -209,6 +209,6 @@ behind build tags; keep that split if you touch detached-process handling.
   worktree can't clobber another's image.
 - **HTTPS** for `*.localhost` (mkcert / Traefik local CA).
 - **Thin Tilt extension** — collapse the per-project Tiltfile shim to a one-liner
-  (`load('ext://berth', 'berth_compose'); berth_compose()`), removing most of the
+  (`load('ext://lane', 'lane_compose'); lane_compose()`), removing most of the
   onboarding boilerplate.
 - **Non-Vite frontend presets** and **general third-party project support**.

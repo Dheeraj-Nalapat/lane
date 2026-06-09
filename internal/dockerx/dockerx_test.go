@@ -4,9 +4,9 @@ import "testing"
 
 func TestParsePS(t *testing.T) {
 	// One JSON line per container, as `docker ps --format '{{json .}}'` emits.
-	lines := `{"Names":"remind-ui-1","Labels":"berth.managed=true,berth.slug=remind,berth.url=http://remind.localhost,berth.tilt.port=10377,berth.project.path=/home/u/remind","State":"running"}
-{"Names":"remind-server-1","Labels":"berth.managed=true,berth.slug=remind,berth.project.path=/home/u/remind","State":"running"}
-{"Names":"x-ui-1","Labels":"berth.managed=true,berth.slug=x,berth.url=http://x.localhost,berth.tilt.port=10500,berth.project.path=/home/u/x","State":"running"}`
+	lines := `{"Names":"remind-ui-1","Labels":"lane.managed=true,lane.slug=remind,lane.url=http://remind.localhost,lane.tilt.port=10377,lane.project.path=/home/u/remind","State":"running"}
+{"Names":"remind-server-1","Labels":"lane.managed=true,lane.slug=remind,lane.project.path=/home/u/remind","State":"running"}
+{"Names":"x-ui-1","Labels":"lane.managed=true,lane.slug=x,lane.url=http://x.localhost,lane.tilt.port=10500,lane.project.path=/home/u/x","State":"running"}`
 	stacks := parsePS([]byte(lines))
 	if len(stacks) != 2 {
 		t.Fatalf("got %d stacks, want 2", len(stacks))

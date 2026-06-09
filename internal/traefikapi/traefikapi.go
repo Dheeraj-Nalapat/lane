@@ -21,7 +21,7 @@ type Client struct {
 	HTTP    *http.Client
 }
 
-// Default returns a Client pointed at the local berth proxy API.
+// Default returns a Client pointed at the local lane proxy API.
 func Default() *Client {
 	return &Client{BaseURL: "http://127.0.0.1:8080", HTTP: &http.Client{Timeout: 2 * time.Second}}
 }

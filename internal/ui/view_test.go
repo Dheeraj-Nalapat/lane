@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dheerajnalapat/berth/internal/stack"
-	"github.com/dheerajnalapat/berth/internal/traefikapi"
+	"github.com/dheerajnalapat/lane/internal/stack"
+	"github.com/dheerajnalapat/lane/internal/traefikapi"
 )
 
 func TestRender(t *testing.T) {

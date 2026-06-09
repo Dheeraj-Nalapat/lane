@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/dheerajnalapat/berth/internal/proxy"
+	"github.com/dheerajnalapat/lane/internal/proxy"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +17,7 @@ var proxyCmd = &cobra.Command{
 			if err := proxy.Up(); err != nil {
 				return err
 			}
-			fmt.Println("berth proxy is up (http://*.localhost → your stacks)")
+			fmt.Println("lane proxy is up (http://*.localhost → your stacks)")
 			return nil
 		case "down":
 			return proxy.Down()

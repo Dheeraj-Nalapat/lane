@@ -6,8 +6,8 @@ import (
 )
 
 func TestPaths(t *testing.T) {
-	t.Setenv("BERTH_HOME", "/tmp/berthtest")
-	if got := Home(); got != "/tmp/berthtest" {
+	t.Setenv("LANE_HOME", "/tmp/lanetest")
+	if got := Home(); got != "/tmp/lanetest" {
 		t.Fatalf("Home = %q", got)
 	}
 	if !strings.HasSuffix(Overrides(), "/overrides") {

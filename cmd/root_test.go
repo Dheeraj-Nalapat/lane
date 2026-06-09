@@ -6,8 +6,8 @@ import (
 )
 
 func TestRootCommand_HasName(t *testing.T) {
-	if root.Use != "berth" {
-		t.Fatalf("root.Use = %q, want %q", root.Use, "berth")
+	if root.Use != "lane" {
+		t.Fatalf("root.Use = %q, want %q", root.Use, "lane")
 	}
 }
 

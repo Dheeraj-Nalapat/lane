@@ -37,8 +37,8 @@ func Derive(base, worktree string) string {
 // Inputs feeds the resolution ladder.
 type Inputs struct {
 	Flag         string // --slug
-	Env          string // BERTH_SLUG
-	ManifestName string // .berth.toml name
+	Env          string // LANE_SLUG
+	ManifestName string // .lane.toml name
 	Worktree     string // linked worktree name, "" if main
 	DirBase      string // basename of project dir (fallback)
 }

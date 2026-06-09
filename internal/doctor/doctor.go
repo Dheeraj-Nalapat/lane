@@ -1,4 +1,4 @@
-// Package doctor runs berth preflight checks.
+// Package doctor runs lane preflight checks.
 package doctor
 
 import (
@@ -49,7 +49,7 @@ func Run() []Check {
 	checks = append(checks, Check{"tilt installed", err == nil, "install Tilt: https://tilt.dev"})
 
 	// *.localhost resolves to loopback?
-	addrs, _ := net.LookupHost("berth-check.localhost")
+	addrs, _ := net.LookupHost("lane-check.localhost")
 	loop := false
 	for _, a := range addrs {
 		if a == "127.0.0.1" || a == "::1" {

@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dheerajnalapat/berth/internal/gitx"
-	"github.com/dheerajnalapat/berth/internal/manifest"
-	"github.com/dheerajnalapat/berth/internal/paths"
-	"github.com/dheerajnalapat/berth/internal/slug"
+	"github.com/dheerajnalapat/lane/internal/gitx"
+	"github.com/dheerajnalapat/lane/internal/manifest"
+	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 
@@ -29,13 +29,13 @@ func runDown(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	m, err := manifest.Load(filepath.Join(dir, ".berth.toml"))
+	m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 	if err != nil {
 		return err
 	}
 	wt, _, _ := gitx.Worktree(dir)
 	sl := slug.Resolve(slug.Inputs{
-		Flag: flagSlug, Env: os.Getenv("BERTH_SLUG"),
+		Flag: flagSlug, Env: os.Getenv("LANE_SLUG"),
 		ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir),
 	})
 
@@ -59,6 +59,6 @@ func runDown(cmd *cobra.Command, args []string) error {
 
 	_ = os.Remove(overridePath)
 	_ = os.Remove(filepath.Join(paths.TraefikDynamic(), sl+".yml"))
-	fmt.Printf("berth: %s torn down\n", sl)
+	fmt.Printf("lane: %s torn down\n", sl)
 	return nil
 }

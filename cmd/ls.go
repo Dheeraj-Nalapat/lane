@@ -5,13 +5,13 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/dheerajnalapat/berth/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
 	"github.com/spf13/cobra"
 )
 
 var lsCmd = &cobra.Command{
 	Use:   "ls",
-	Short: "List running berth stacks",
+	Short: "List running lane stacks",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stacks, err := dockerx.List()
 		if err != nil {

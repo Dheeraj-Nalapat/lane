@@ -9,7 +9,7 @@ import (
 func write(t *testing.T, body string) string {
 	t.Helper()
 	dir := t.TempDir()
-	p := filepath.Join(dir, ".berth.toml")
+	p := filepath.Join(dir, ".lane.toml")
 	if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
 		t.Fatal(err)
 	}

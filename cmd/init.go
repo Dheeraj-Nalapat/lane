@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/berth/internal/scaffold"
+	"github.com/dheerajnalapat/lane/internal/scaffold"
 	"github.com/spf13/cobra"
 )
 
@@ -14,12 +14,12 @@ var flagCompose string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Scaffold a .berth.toml for the current project",
+	Short: "Scaffold a .lane.toml for the current project",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, _ := os.Getwd()
-		manifestPath := filepath.Join(dir, ".berth.toml")
+		manifestPath := filepath.Join(dir, ".lane.toml")
 		if _, err := os.Stat(manifestPath); err == nil {
-			return errors.New(".berth.toml already exists")
+			return errors.New(".lane.toml already exists")
 		}
 
 		composeRel := flagCompose
@@ -41,13 +41,13 @@ var initCmd = &cobra.Command{
 		}
 		svc, port := scaffold.GuessWebEntry(string(body))
 		if svc == "" {
-			return errors.New("could not guess a web entrypoint; edit .berth.toml manually after creation")
+			return errors.New("could not guess a web entrypoint; edit .lane.toml manually after creation")
 		}
 		out := scaffold.RenderManifest(filepath.Base(dir), composeRel, svc, port)
 		if err := os.WriteFile(manifestPath, []byte(out), 0o644); err != nil {
 			return err
 		}
-		fmt.Printf("wrote .berth.toml (routing %s:%d). Review it, then `berth up`.\n", svc, port)
+		fmt.Printf("wrote .lane.toml (routing %s:%d). Review it, then `lane up`.\n", svc, port)
 		return nil
 	},
 }

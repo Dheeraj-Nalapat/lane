@@ -1,4 +1,4 @@
-// Package proxy manages the shared Traefik container and the berth network.
+// Package proxy manages the shared Traefik container and the lane network.
 package proxy
 
 import (
@@ -10,14 +10,14 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/dheerajnalapat/berth/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/paths"
 )
 
 //go:embed traefik-compose.yml.tmpl
 var composeTmpl string
 
 // Network is the shared external Docker network name.
-const Network = "berth"
+const Network = "lane"
 
 func renderCompose(network, dynamicDir string) ([]byte, error) {
 	t, err := template.New("c").Parse(composeTmpl)
@@ -65,10 +65,10 @@ func Up() error {
 // Down stops Traefik (leaves the network in place).
 func Down() error { return dockerCompose("down") }
 
-// Running reports whether the berth-proxy container is up.
+// Running reports whether the lane-proxy container is up.
 func Running() bool {
-	out, _ := exec.Command("docker", "ps", "--filter", "name=^berth-proxy$", "--format", "{{.Names}}").Output()
-	return bytes.Contains(out, []byte("berth-proxy"))
+	out, _ := exec.Command("docker", "ps", "--filter", "name=^lane-proxy$", "--format", "{{.Names}}").Output()
+	return bytes.Contains(out, []byte("lane-proxy"))
 }
 
 // Ensure starts the proxy only if it is not already running.
@@ -80,7 +80,7 @@ func Ensure() error {
 }
 
 func dockerCompose(args ...string) error {
-	full := append([]string{"compose", "-p", "berth-proxy", "-f", composePath()}, args...)
+	full := append([]string{"compose", "-p", "lane-proxy", "-f", composePath()}, args...)
 	cmd := exec.Command("docker", full...)
 	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 	return cmd.Run()

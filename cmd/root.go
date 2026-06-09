@@ -9,7 +9,7 @@ var (
 )
 
 var root = &cobra.Command{
-	Use:           "berth",
+	Use:           "lane",
 	Short:         "Run many project stacks at once with zero port conflicts",
 	SilenceUsage:  true,
 	SilenceErrors: true,

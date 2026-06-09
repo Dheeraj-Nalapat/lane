@@ -6,17 +6,17 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/berth/internal/compose"
-	"github.com/dheerajnalapat/berth/internal/dockerx"
-	"github.com/dheerajnalapat/berth/internal/gitx"
-	"github.com/dheerajnalapat/berth/internal/identity"
-	"github.com/dheerajnalapat/berth/internal/manifest"
-	"github.com/dheerajnalapat/berth/internal/override"
-	"github.com/dheerajnalapat/berth/internal/paths"
-	"github.com/dheerajnalapat/berth/internal/ports"
-	"github.com/dheerajnalapat/berth/internal/proxy"
-	"github.com/dheerajnalapat/berth/internal/slug"
-	"github.com/dheerajnalapat/berth/internal/tiltx"
+	"github.com/dheerajnalapat/lane/internal/compose"
+	"github.com/dheerajnalapat/lane/internal/dockerx"
+	"github.com/dheerajnalapat/lane/internal/gitx"
+	"github.com/dheerajnalapat/lane/internal/identity"
+	"github.com/dheerajnalapat/lane/internal/manifest"
+	"github.com/dheerajnalapat/lane/internal/override"
+	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/ports"
+	"github.com/dheerajnalapat/lane/internal/proxy"
+	"github.com/dheerajnalapat/lane/internal/slug"
+	"github.com/dheerajnalapat/lane/internal/tiltx"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ var flagDetach bool
 
 var upCmd = &cobra.Command{
 	Use:   "up [path]",
-	Short: "Bring a stack up behind the berth proxy",
+	Short: "Bring a stack up behind the lane proxy",
 	Args:  cobra.MaximumNArgs(1),
 	RunE:  runUp,
 }
@@ -40,7 +40,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	m, err := manifest.Load(filepath.Join(dir, ".berth.toml"))
+	m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	sl := slug.Resolve(slug.Inputs{
-		Flag: flagSlug, Env: os.Getenv("BERTH_SLUG"),
+		Flag: flagSlug, Env: os.Getenv("LANE_SLUG"),
 		ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir),
 	})
 
@@ -97,16 +97,16 @@ func runUp(cmd *cobra.Command, args []string) error {
 
 	env := append(os.Environ(),
 		"COMPOSE_PROJECT_NAME="+sl,
-		"BERTH=1",
-		"BERTH_SLUG="+sl,
-		"BERTH_COMPOSE_OVERRIDE="+overridePath,
+		"LANE=1",
+		"LANE_SLUG="+sl,
+		"LANE_COMPOSE_OVERRIDE="+overridePath,
 	)
 	if m.APITarget != "" {
-		env = append(env, "BERTH_API_TARGET=http://"+m.APITarget)
+		env = append(env, "LANE_API_TARGET=http://"+m.APITarget)
 	}
 
 	if flagDryRun {
-		fmt.Printf("# slug: %s\n# tilt port: %d\n# override (%s):\n%s\n# tilt dynamic (%s):\n%s\n# command: tilt %v\n# env adds: COMPOSE_PROJECT_NAME, BERTH, BERTH_SLUG, BERTH_COMPOSE_OVERRIDE\n",
+		fmt.Printf("# slug: %s\n# tilt port: %d\n# override (%s):\n%s\n# tilt dynamic (%s):\n%s\n# command: tilt %v\n# env adds: COMPOSE_PROJECT_NAME, LANE, LANE_SLUG, LANE_COMPOSE_OVERRIDE\n",
 			sl, tiltPort, overridePath, body, dynamicPath, dynamic, tiltx.UpArgs(tiltPort))
 		return nil
 	}
@@ -138,7 +138,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		}
 		pidFile := filepath.Join(paths.Run(), sl+".pid")
 		_ = os.WriteFile(pidFile, []byte(fmt.Sprint(tcmd.Process.Pid)), 0o644)
-		fmt.Printf("detached (pid %d). logs: berth logs --slug %s\n", tcmd.Process.Pid, sl)
+		fmt.Printf("detached (pid %d). logs: lane logs --slug %s\n", tcmd.Process.Pid, sl)
 		return nil
 	}
 
@@ -154,7 +154,7 @@ func projectDir(args []string) (string, error) {
 }
 
 func printURLs(sl string, routes []override.Route) {
-	fmt.Printf("berth: %s\n", sl)
+	fmt.Printf("lane: %s\n", sl)
 	for _, r := range routes {
 		fmt.Printf("  → http://%s  (%s:%d)\n", r.Hostname, r.Service, r.Port)
 	}

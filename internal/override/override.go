@@ -1,4 +1,4 @@
-// Package override generates the non-invasive Compose overlay berth applies.
+// Package override generates the non-invasive Compose overlay lane applies.
 package override
 
 import (
@@ -19,7 +19,7 @@ type Route struct {
 type Spec struct {
 	Slug        string
 	ProjectPath string
-	Network     string // shared external network name, e.g. "berth"
+	Network     string // shared external network name, e.g. "lane"
 	Services    []string
 	Routes      []Route
 	TiltPort    int
@@ -44,10 +44,10 @@ func Generate(s Spec) ([]byte, error) {
 	}
 
 	idLabels := []string{
-		"berth.managed=true",
-		"berth.slug=" + s.Slug,
-		"berth.project.path=" + s.ProjectPath,
-		fmt.Sprintf("berth.tilt.port=%d", s.TiltPort),
+		"lane.managed=true",
+		"lane.slug=" + s.Slug,
+		"lane.project.path=" + s.ProjectPath,
+		fmt.Sprintf("lane.tilt.port=%d", s.TiltPort),
 	}
 
 	services := map[string]any{}
@@ -68,7 +68,7 @@ func Generate(s Spec) ([]byte, error) {
 				fmt.Sprintf("traefik.http.routers.%s.rule=Host(`%s`)", router, r.Hostname),
 				"traefik.http.routers."+router+".entrypoints=web",
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", router, r.Port),
-				"berth.url=http://"+r.Hostname,
+				"lane.url=http://"+r.Hostname,
 			)
 		}
 		svc["labels"] = labels

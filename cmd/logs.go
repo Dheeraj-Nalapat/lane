@@ -6,10 +6,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dheerajnalapat/berth/internal/gitx"
-	"github.com/dheerajnalapat/berth/internal/manifest"
-	"github.com/dheerajnalapat/berth/internal/paths"
-	"github.com/dheerajnalapat/berth/internal/slug"
+	"github.com/dheerajnalapat/lane/internal/gitx"
+	"github.com/dheerajnalapat/lane/internal/manifest"
+	"github.com/dheerajnalapat/lane/internal/paths"
+	"github.com/dheerajnalapat/lane/internal/slug"
 	"github.com/spf13/cobra"
 )
 
@@ -24,12 +24,12 @@ var logsCmd = &cobra.Command{
 		}
 		sl := flagSlug
 		if sl == "" {
-			m, err := manifest.Load(filepath.Join(dir, ".berth.toml"))
+			m, err := manifest.Load(filepath.Join(dir, ".lane.toml"))
 			if err != nil {
 				return err
 			}
 			wt, _, _ := gitx.Worktree(dir)
-			sl = slug.Resolve(slug.Inputs{ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir), Env: os.Getenv("BERTH_SLUG")})
+			sl = slug.Resolve(slug.Inputs{ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir), Env: os.Getenv("LANE_SLUG")})
 		}
 
 		// Detached run → tail the log file; else stream compose logs.

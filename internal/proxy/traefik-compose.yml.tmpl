@@ -1,7 +1,7 @@
 services:
   proxy:
     image: traefik:v3.1
-    container_name: berth-proxy
+    container_name: lane-proxy
     command:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
@@ -12,8 +12,8 @@ services:
       - --api.dashboard=true
       - --api.insecure=true
     labels:
-      - berth.managed=true
-      - berth.proxy=true
+      - lane.managed=true
+      - lane.proxy=true
     ports:
       - "80:80"
       - "127.0.0.1:8080:8080"
