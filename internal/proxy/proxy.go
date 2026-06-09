@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/dheeraj-nalapat/lane/internal/paths"
+	"github.com/dheeraj-nalapat/lane/internal/preflight"
 	"github.com/dheeraj-nalapat/lane/internal/tlsx"
 )
 
@@ -62,7 +63,14 @@ func Up() error {
 	if err := os.WriteFile(composePath(), body, 0o644); err != nil {
 		return err
 	}
-	return dockerCompose("up", "-d")
+	out, err := exec.Command("docker", "compose", "-p", "lane-proxy", "-f", composePath(), "up", "-d").CombinedOutput()
+	if err != nil {
+		if preflight.IsPortConflict(string(out)) {
+			return fmt.Errorf("a required port (80/443) is in use by another process — free it or stop that service, then `lane proxy up`\n%s", out)
+		}
+		return fmt.Errorf("starting lane proxy: %v\n%s", err, out)
+	}
+	return nil
 }
 
 // Down stops Traefik (leaves the network in place).
