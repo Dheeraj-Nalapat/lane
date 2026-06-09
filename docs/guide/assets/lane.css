@@ -2,8 +2,9 @@
 .lane-hero > *:not(.lane-bg) { position: relative; z-index: 1; }
 
 /* subtle animated git-graph behind the hero: branches grow, hold, fade, respawn */
-/* big git graph bleeding in from the left edge of the page */
+/* big git graph bleeding in from the left edge of the page, nudged down a touch */
 .lane-bg { position: absolute; inset: 0; z-index: 0;
+  transform: translateY(110px) scale(.9); transform-origin: left bottom;
   pointer-events: none; color: var(--md-primary-fg-color); opacity: .16; }
 .lane-bg svg { width: 100%; height: 100%; display: block; }
 .lane-branch { fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round;
