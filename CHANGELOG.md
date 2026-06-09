@@ -6,6 +6,8 @@ to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-09
+
 ### Added
 - Shared Traefik proxy on the `lane` network; routes `Host(<slug>.localhost)` to
   each stack with zero published host ports.

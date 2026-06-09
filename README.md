@@ -57,22 +57,21 @@ Run `lane doctor` to check all of these at once.
 
 lane is a single static Go binary — no runtime dependencies.
 
-**From source (current setup):**
+Pick one (full details + Windows/arm in the [install guide](docs/guide/install.md)):
+
 ```bash
-cd /path/to/lane
-go build -o ~/.local/bin/lane .   # ~/.local/bin must be on your PATH
-lane doctor
+# Install script (Linux · macOS) — downloads the right release binary
+curl -sSL https://github.com/Dheeraj-Nalapat/lane/releases/latest/download/install.sh | sh
+
+# or, with Go (any platform)
+go install github.com/dheeraj-nalapat/lane@latest
+
+# or from source
+git clone https://github.com/Dheeraj-Nalapat/lane && cd lane && go build -o ~/.local/bin/lane .
 ```
 
-**Published releases (once a remote/tap is set up):**
-```bash
-brew install <owner>/lane/lane          # Homebrew
-# or
-curl -sSL https://github.com/<owner>/lane/releases/latest/download/install.sh | sh
-```
-
-> Rebuild after changing lane's code: `go build -o ~/.local/bin/lane .`
-> If an open shell can't find it, run `hash -r`.
+Prebuilt binaries for Linux/macOS/Windows (amd64 + arm64) are attached to each
+[release](https://github.com/Dheeraj-Nalapat/lane/releases). Then `lane doctor`.
 
 ---
 

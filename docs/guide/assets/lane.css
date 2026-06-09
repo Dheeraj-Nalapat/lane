@@ -4,8 +4,9 @@
 .lane-tag { font-size: 1.4rem; font-weight: 600; margin: .25rem 0 .75rem; }
 .lane-sub { max-width: 40rem; margin: 0 auto 1.5rem; opacity: .85; }
 .lane-cta { display: flex; gap: .75rem; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
-.lane-install { display: inline-block; }
-.lane-install code { padding: .5rem 1rem; }
+.lane-install { display: inline-block; max-width: 100%; overflow-x: auto; }
+.lane-install code { padding: .5rem 1rem; white-space: pre; }
+.lane-install-note { font-size: .85rem; opacity: .7; margin: .4rem 0 0; }
 
 .lane-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem; max-width: 60rem; margin: 1rem auto 2.5rem; padding: 0 1rem; }

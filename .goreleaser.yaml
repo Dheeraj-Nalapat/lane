@@ -5,14 +5,12 @@ builds:
     env: [CGO_ENABLED=0]
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X github.com/dheeraj-nalapat/lane/cmd.Version={{ .Version }}
 archives:
   - formats: [tar.gz]
     name_template: "lane_{{ .Os }}_{{ .Arch }}"
-brews:
-  - repository:
-      owner: dheeraj-nalapat        # adjust to real tap repo
-      name: homebrew-lane
-    homepage: "https://github.com/dheeraj-nalapat/lane"
-    description: "Run many project stacks at once with zero port conflicts"
 checksum:
   name_template: "checksums.txt"
+# Homebrew publishing is deferred until a `Dheeraj-Nalapat/homebrew-lane` tap
+# exists. To enable later, add a `brews:` block pointing at that repo.
