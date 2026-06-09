@@ -85,5 +85,4 @@ lane down --volumes  # also wipe its named volumes
 
 - Your project type: [plain compose](recipes/compose.md) ·
   [Tilt](recipes/tilt.md) · [frontend HMR](recipes/frontend-hmr.md)
-- HTTPS, and driving lane from coding agents (parallel testing): see the
-  [README](../../README.md).
+- [HTTPS](https.md) and [using lane with agents](agents.md) (parallel testing).

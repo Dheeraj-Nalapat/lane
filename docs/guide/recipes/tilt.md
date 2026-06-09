@@ -58,5 +58,5 @@ The Tilt UI is routed at `http://tilt-<slug>.localhost`.
 
 ## Worked example
 
-See [`docs/onboarding-remind.md`](../../onboarding-remind.md) — the ReMind
+See [the ReMind onboarding walkthrough](https://github.com/Dheeraj-Nalapat/lane/blob/main/docs/onboarding-remind.md) — the ReMind
 project onboarded end-to-end (two worktrees running at once).
