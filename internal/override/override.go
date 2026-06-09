@@ -17,13 +17,14 @@ type Route struct {
 
 // Spec is the input to Generate.
 type Spec struct {
-	Slug        string
-	ProjectPath string
-	Network     string // shared external network name, e.g. "lane"
-	Services    []string
-	Routes      []Route
-	TiltPort    int
-	TLS         bool
+	Slug          string
+	ProjectPath   string
+	Network       string // shared external network name, e.g. "lane"
+	Services      []string
+	Routes        []Route
+	TiltPort      int
+	TLS           bool
+	BuiltServices []string
 }
 
 // resetNode emits a Compose `!reset` override. seq=true → `!reset []`,
@@ -43,6 +44,10 @@ func Generate(s Spec) ([]byte, error) {
 	for _, r := range s.Routes {
 		routed[r.Service] = r
 	}
+	built := map[string]bool{}
+	for _, b := range s.BuiltServices {
+		built[b] = true
+	}
 
 	idLabels := []string{
 		"lane.managed=true",
@@ -60,6 +65,9 @@ func Generate(s Spec) ([]byte, error) {
 		svc := map[string]any{
 			"container_name": resetNode{},          // !reset null
 			"ports":          resetNode{seq: true}, // !reset []
+		}
+		if built[name] {
+			svc["image"] = resetNode{} // !reset null → compose names the built image by project (slug)
 		}
 		labels := append([]string(nil), idLabels...)
 		if r, ok := routed[name]; ok {

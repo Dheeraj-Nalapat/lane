@@ -106,3 +106,15 @@ func TestGenerate_NoTLSRouterWhenOff(t *testing.T) {
 		t.Fatalf("TLS off must not emit a -tls router:\n%s", out)
 	}
 }
+
+func TestGenerate_ResetsBuiltImage(t *testing.T) {
+	out, _ := Generate(Spec{
+		Slug: "demo", ProjectPath: "/p", Network: "lane",
+		Services: []string{"server", "redis"}, BuiltServices: []string{"server"},
+		Routes: []Route{{Service: "server", Port: 8000, Hostname: "demo.localhost"}},
+	})
+	s := string(out)
+	if c := strings.Count(s, "image: !reset null"); c != 1 {
+		t.Fatalf("got %d image resets, want 1:\n%s", c, s)
+	}
+}
