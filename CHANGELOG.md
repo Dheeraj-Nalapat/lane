@@ -23,6 +23,8 @@ to follow [Semantic Versioning](https://semver.org/).
 - Optional HTTPS: `lane tls enable|disable|status` serves trusted
   `https://*.localhost` via mkcert (alongside HTTP; no redirect). mkcert is not
   a hard dependency.
+- Help website (MkDocs Material): a custom landing page with a CLI showcase plus
+  the guides, deployable to GitHub Pages.
 - Agent integration: `lane up --json`/`--wait` and `lane ls --json` for
   machine-driven use; race-safe parallel `up` (locked proxy bring-up); a Claude
   Code skill (packaged as a plugin + marketplace) and a Cursor rule documenting

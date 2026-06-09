@@ -15,6 +15,11 @@ reachable in the browser at a friendly `*.localhost` URL via one shared
 > **New here?** Start with the [guides](docs/guide/README.md): a
 > [getting-started tutorial](docs/guide/getting-started.md) and per-project
 > recipes (compose, Tilt, frontend HMR).
+>
+> The guides also build into a website (MkDocs Material). Locally:
+> `pip install -r requirements-docs.txt && mkdocs serve`. It auto-deploys to
+> GitHub Pages on push to `main` once Pages is enabled (Settings → Pages →
+> Source: GitHub Actions).
 
 ---
 
