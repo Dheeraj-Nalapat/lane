@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dheeraj-nalapat/lane/internal/preflight"
 	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/dheeraj-nalapat/lane/internal/tlsx"
 	"github.com/spf13/cobra"
@@ -31,6 +32,9 @@ var tlsCmd = &cobra.Command{
 func init() { root.AddCommand(tlsCmd) }
 
 func tlsEnable() error {
+	if err := preflight.DockerRunning(); err != nil {
+		return err
+	}
 	if !tlsx.MkcertInstalled() {
 		return errors.New("mkcert is not installed. Install it (e.g. `brew install mkcert`, " +
 			"or see https://github.com/FiloSottile/mkcert), then re-run `lane tls enable`")

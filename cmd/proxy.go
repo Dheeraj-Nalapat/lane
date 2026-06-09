@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/dheeraj-nalapat/lane/internal/preflight"
 	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,9 @@ var proxyCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		switch args[0] {
 		case "up":
+			if err := preflight.DockerRunning(); err != nil {
+				return err
+			}
 			if err := proxy.Up(); err != nil {
 				return err
 			}
