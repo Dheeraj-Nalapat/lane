@@ -23,6 +23,7 @@ type Spec struct {
 	Services    []string
 	Routes      []Route
 	TiltPort    int
+	TLS         bool
 }
 
 // resetNode emits a Compose `!reset` override. seq=true → `!reset []`,
@@ -72,6 +73,15 @@ func Generate(s Spec) ([]byte, error) {
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", router, r.Port),
 				"lane.url=http://"+r.Hostname,
 			)
+			if s.TLS {
+				tlsRouter := router + "-tls"
+				labels = append(labels,
+					fmt.Sprintf("traefik.http.routers.%s.rule=Host(`%s`)", tlsRouter, r.Hostname),
+					"traefik.http.routers."+tlsRouter+".entrypoints=websecure",
+					"traefik.http.routers."+tlsRouter+".tls=true",
+					"traefik.http.routers."+tlsRouter+".service="+router,
+				)
+			}
 		}
 		svc["labels"] = labels
 		services[name] = svc

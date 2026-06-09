@@ -76,3 +76,33 @@ func TestGenerate_NoTiltPortLabelWhenZero(t *testing.T) {
 		t.Fatalf("compose stack (TiltPort 0) must not emit lane.tilt.port:\n%s", out)
 	}
 }
+
+func TestGenerate_TLSRouter(t *testing.T) {
+	out, _ := Generate(Spec{
+		Slug: "demo", ProjectPath: "/p", Network: "lane",
+		Services: []string{"web"}, TiltPort: 0, TLS: true,
+		Routes: []Route{{Service: "web", Port: 80, Hostname: "demo.localhost"}},
+	})
+	s := string(out)
+	for _, want := range []string{
+		"traefik.http.routers.demo-web-tls.rule=Host(`demo.localhost`)",
+		"traefik.http.routers.demo-web-tls.entrypoints=websecure",
+		"traefik.http.routers.demo-web-tls.tls=true",
+		"traefik.http.routers.demo-web-tls.service=demo-web",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("TLS router missing %q:\n%s", want, s)
+		}
+	}
+}
+
+func TestGenerate_NoTLSRouterWhenOff(t *testing.T) {
+	out, _ := Generate(Spec{
+		Slug: "demo", ProjectPath: "/p", Network: "lane",
+		Services: []string{"web"}, TLS: false,
+		Routes: []Route{{Service: "web", Port: 80, Hostname: "demo.localhost"}},
+	})
+	if strings.Contains(string(out), "-tls") {
+		t.Fatalf("TLS off must not emit a -tls router:\n%s", out)
+	}
+}
