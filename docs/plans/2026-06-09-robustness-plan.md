@@ -625,11 +625,11 @@ git commit -m "feat(proxy,tls): gate on Docker-running preflight"
 
 ### Task 10: Docs — image isolation pattern + CHANGELOG
 
-**Files:** Modify `docs/onboarding-remind.md`, `README.md`, `CHANGELOG.md`, `/home/dheerajnalapat/project/ReMind/Tiltfile`
+**Files:** Modify `docs/onboarding-remind.md`, `README.md`, `CHANGELOG.md`, `~/project/ReMind/Tiltfile`
 
 - [ ] **Step 1: Enable the tag hook in ReMind's Tiltfile (uncommitted, for review)**
 
-In `/home/dheerajnalapat/project/ReMind/Tiltfile`, change:
+In `~/project/ReMind/Tiltfile`, change:
 ```python
     tag = ""  # v1: per-slug image tags disabled
 ```
@@ -671,7 +671,7 @@ In `CHANGELOG.md` under `## [Unreleased]` → `### Added`, append:
 - [ ] **Step 4: Commit (lane repo only; ReMind stays uncommitted for the owner)**
 
 ```bash
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 git add docs/onboarding-remind.md README.md CHANGELOG.md
 git commit -m "docs: per-slug image isolation + C1 changelog"
 ```

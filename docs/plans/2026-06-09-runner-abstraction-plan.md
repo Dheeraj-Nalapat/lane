@@ -647,14 +647,14 @@ Expected: builds; all tests PASS; vet clean.
 
 ```bash
 # In a Tilt project (e.g. ReMind): expect "# runner: tilt"
-cd /home/dheerajnalapat/project/ReMind && go run /home/dheerajnalapat/project/lane up --dry-run | grep -E '# runner|# slug'
+cd ~/project/ReMind && go run ~/project/lane up --dry-run | grep -E '# runner|# slug'
 ```
 Expected: `# slug: remind` and `# runner: tilt`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 git add cmd/up.go
 git commit -m "feat(up): select runner (tilt|compose), add --build, dispatch via runner"
 ```
@@ -774,7 +774,7 @@ git commit -m "docs: compose runner is zero-config; Tiltfile shim is Tilt-only"
 - [ ] **Step 1: Build + create a Tilt-less project**
 
 ```bash
-go build -o ~/.local/bin/lane /home/dheerajnalapat/project/lane
+go build -o ~/.local/bin/lane ~/project/lane
 mkdir -p /tmp/lane-nocompose
 cat > /tmp/lane-nocompose/docker-compose.yml <<'EOF'
 services:

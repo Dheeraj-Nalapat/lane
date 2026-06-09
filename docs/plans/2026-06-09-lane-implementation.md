@@ -2778,13 +2778,13 @@ This is the real-world acceptance test: two worktrees of ReMind running at once,
 ### Task 21: Make ReMind's Tiltfile lane-aware + add manifest
 
 **Files:**
-- Modify: `/home/dheerajnalapat/project/ReMind/Tiltfile` (docker branch only)
-- Create: `/home/dheerajnalapat/project/ReMind/.lane.toml`
-- Modify: `/home/dheerajnalapat/project/ReMind/.gitignore` (ignore nothing new — overrides live in ~/.lane)
+- Modify: `~/project/ReMind/Tiltfile` (docker branch only)
+- Create: `~/project/ReMind/.lane.toml`
+- Modify: `~/project/ReMind/.gitignore` (ignore nothing new — overrides live in ~/.lane)
 
 - [ ] **Step 1: Add the manifest**
 
-`/home/dheerajnalapat/project/ReMind/.lane.toml`:
+`~/project/ReMind/.lane.toml`:
 ```toml
 name = "remind"
 compose_file = "infra/docker-compose.yml"
@@ -2798,7 +2798,7 @@ port = 80
 
 - [ ] **Step 2: Make the Tiltfile pick up lane's override + slug-namespaced images**
 
-In `/home/dheerajnalapat/project/ReMind/Tiltfile`, replace the `docker_compose("./infra/docker-compose.yml")` call inside the `if use_docker:` branch with the lane-aware shim, and namespace the built image tags by slug:
+In `~/project/ReMind/Tiltfile`, replace the `docker_compose("./infra/docker-compose.yml")` call inside the `if use_docker:` branch with the lane-aware shim, and namespace the built image tags by slug:
 
 ```python
 if use_docker:
@@ -2858,7 +2858,7 @@ Add to `docs/2026-06-08-lane-design.md` under "Deferred (post-v1)":
 - [ ] **Step 4: Commit (lane repo) the spec update**
 
 ```bash
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 git add docs/2026-06-08-lane-design.md
 git commit -m "docs: note per-slug image-tag isolation deferred to post-v1"
 ```
@@ -2874,7 +2874,7 @@ git commit -m "docs: note per-slug image-tag isolation deferred to post-v1"
 - [ ] **Step 1: Build + install the binary**
 
 ```bash
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 go build -o /usr/local/bin/lane .   # or: go install .
 lane doctor
 ```
@@ -2884,7 +2884,7 @@ Expected: all checks ✓.
 
 ```bash
 lane proxy up
-cd /home/dheerajnalapat/project/ReMind
+cd ~/project/ReMind
 lane up -d
 lane ls
 ```
@@ -2893,7 +2893,7 @@ Expected: `lane ls` shows `remind` with URL `http://remind.localhost`. Visit `ht
 - [ ] **Step 3: Create a worktree and bring it up simultaneously**
 
 ```bash
-cd /home/dheerajnalapat/project/ReMind
+cd ~/project/ReMind
 git worktree add ../remind-featx -b featx
 cd ../remind-featx
 lane up -d
@@ -2905,17 +2905,17 @@ Expected: `lane ls` shows BOTH `remind` and `remind-featx`, each with its own UR
 
 ```bash
 lane view              # confirm two independent stacks + routes
-cd /home/dheerajnalapat/project/remind-featx && lane down
-cd /home/dheerajnalapat/project/ReMind && lane down
+cd ~/project/remind-featx && lane down
+cd ~/project/ReMind && lane down
 lane ls                # empty
-git -C /home/dheerajnalapat/project/ReMind status --short   # clean: no committed files changed by lane
+git -C ~/project/ReMind status --short   # clean: no committed files changed by lane
 ```
 Expected: both torn down; `lane ls` empty; ReMind working tree clean (proves non-invasiveness — overrides lived in ~/.lane).
 
 - [ ] **Step 5: Commit a short acceptance note**
 
 ```bash
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 mkdir -p docs
 printf '%s\n' "# Acceptance: ReMind two-worktree run verified $(date +%F)" > docs/acceptance-remind.md
 git add docs/acceptance-remind.md

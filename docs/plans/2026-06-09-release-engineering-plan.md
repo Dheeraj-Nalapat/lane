@@ -48,7 +48,7 @@ sed -i 's/owner: dheerajnalapat$/owner: dheeraj-nalapat/' .goreleaser.yaml
 ```
 
 > The path replace is scoped to `dheeraj-nalapat/lane` (not bare `dheerajnalapat`)
-> so it cannot corrupt home-dir paths like `/home/dheerajnalapat/project/...` in
+> so it cannot corrupt home-dir paths like `~/project/...` in
 > the docs. The bare `owner:` line is handled by the second `sed`.
 
 - [ ] **Step 2: Verify the module line + no stale path remain**

@@ -218,10 +218,10 @@ go build -o ./bin/lane .
 mkdir -p /tmp/lane-shot && cd /tmp/lane-shot
 printf 'services:\n  web:\n    image: traefik/whoami\n' > docker-compose.yml
 printf 'name = "demo"\ncompose_file = "docker-compose.yml"\n[[routes]]\nservice = "web"\nport = 80\n' > .lane.toml
-/home/dheerajnalapat/project/lane/bin/lane up --wait --json 2>/dev/null    # copy this JSON
-/home/dheerajnalapat/project/lane/bin/lane ls                              # copy this table
+~/project/lane/bin/lane up --wait --json 2>/dev/null    # copy this JSON
+~/project/lane/bin/lane ls                              # copy this table
 # teardown
-/home/dheerajnalapat/project/lane/bin/lane down >/dev/null 2>&1
+~/project/lane/bin/lane down >/dev/null 2>&1
 cd / && rm -rf /tmp/lane-shot
 ```
 
@@ -416,7 +416,7 @@ git commit -m "docs(site): Pages deploy workflow + publish runbook"
 - [ ] **Step 1: Build strict in a venv**
 
 ```bash
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 python3 -m venv .venv-docs && . .venv-docs/bin/activate
 pip install -r requirements-docs.txt
 mkdocs build --strict

@@ -124,19 +124,19 @@ Run this when `:80`/`:8080` are free and you don't mind starting containers:
 
 ```bash
 # Build + install lane
-cd /home/dheerajnalapat/project/lane
+cd ~/project/lane
 go build -o /usr/local/bin/lane .   # or: go install .
 lane doctor                          # expect all green
 
 # Proxy + main ReMind
 lane proxy up
-cd /home/dheerajnalapat/project/ReMind
+cd ~/project/ReMind
 lane up -d
 lane ls            # shows remind → http://remind.localhost
 # visit http://remind.localhost and http://tilt-remind.localhost
 
 # Second worktree, simultaneously
-cd /home/dheerajnalapat/project/ReMind
+cd ~/project/ReMind
 git worktree add ../remind-featx -b featx
 cd ../remind-featx
 lane up -d
@@ -148,7 +148,7 @@ lane view          # live routing for both
 cd ../remind-featx && lane down
 cd ../ReMind && lane down
 lane ls            # empty
-git -C /home/dheerajnalapat/project/ReMind status --short   # clean working tree
+git -C ~/project/ReMind status --short   # clean working tree
 ```
 
 Expected: both stacks reachable in the browser at the same time, zero host-port

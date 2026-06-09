@@ -12,7 +12,7 @@ lane is published under the personal GitHub account **`Dheeraj-Nalapat`**.
 
 # 2. Wire the remote and push:
 git remote add origin git@github.com:Dheeraj-Nalapat/lane.git
-git push -u origin master
+git push -u origin main
 ```
 
 GoReleaser's Homebrew step pushes a formula to the tap repo, which needs a token
