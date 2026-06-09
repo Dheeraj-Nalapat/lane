@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
-	"regexp"
-	"strconv"
 	"strings"
+
+	"github.com/dheeraj-nalapat/lane/internal/preflight"
 )
 
 // Check is one diagnostic result.
@@ -15,19 +15,6 @@ type Check struct {
 	Name string
 	OK   bool
 	Hint string
-}
-
-var verRe = regexp.MustCompile(`v(\d+)\.(\d+)\.\d+`)
-
-// composeOK reports whether a `docker compose version` line is >= 2.20.
-func composeOK(line string) bool {
-	mm := verRe.FindStringSubmatch(line)
-	if mm == nil {
-		return false
-	}
-	major, _ := strconv.Atoi(mm[1])
-	minor, _ := strconv.Atoi(mm[2])
-	return major > 2 || (major == 2 && minor >= 20)
 }
 
 func cmdOut(name string, args ...string) (string, error) {
@@ -42,8 +29,8 @@ func Run() []Check {
 	_, err := cmdOut("docker", "info")
 	checks = append(checks, Check{"docker daemon", err == nil, "start Docker"})
 
-	cv, _ := cmdOut("docker", "compose", "version")
-	checks = append(checks, Check{"compose >= 2.20", composeOK(cv), "upgrade Docker Compose"})
+	okCompose, _ := preflight.ComposeOK()
+	checks = append(checks, Check{"compose >= 2.20", okCompose, "upgrade Docker Compose"})
 
 	_, err = exec.LookPath("tilt")
 	checks = append(checks, Check{"tilt installed", err == nil, "install Tilt: https://tilt.dev"})
