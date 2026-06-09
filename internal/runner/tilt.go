@@ -30,7 +30,7 @@ func (tiltRunner) Up(s RunSpec) error {
 	}
 
 	printURLs(s)
-	fmt.Printf("  → http://tilt-%s.localhost  (Tilt UI)\n", s.Slug)
+	emit(s, "  → http://tilt-%s.localhost  (Tilt UI)\n", s.Slug)
 
 	tcmd := exec.Command("tilt", tiltx.UpArgs(s.TiltPort)...)
 	tcmd.Dir = s.Dir
@@ -47,7 +47,7 @@ func (tiltRunner) Up(s RunSpec) error {
 		}
 		_ = os.WriteFile(filepath.Join(paths.Run(), s.Slug+".pid"),
 			[]byte(fmt.Sprint(tcmd.Process.Pid)), 0o644)
-		fmt.Printf("detached (pid %d). logs: lane logs --slug %s\n", tcmd.Process.Pid, s.Slug)
+		emit(s, "detached (pid %d). logs: lane logs --slug %s\n", tcmd.Process.Pid, s.Slug)
 		return nil
 	}
 	tcmd.Stdout, tcmd.Stderr, tcmd.Stdin = os.Stdout, os.Stderr, os.Stdin

@@ -32,6 +32,6 @@ func (composeRunner) Up(s RunSpec) error {
 	if err := c.Run(); err != nil {
 		return err
 	}
-	fmt.Printf("up (detached). logs: lane logs --slug %s\n", s.Slug)
+	emit(s, "up (detached). logs: lane logs --slug %s\n", s.Slug)
 	return nil
 }

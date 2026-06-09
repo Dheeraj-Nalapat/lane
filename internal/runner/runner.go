@@ -3,6 +3,7 @@ package runner
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/dheeraj-nalapat/lane/internal/override"
 )
@@ -20,6 +21,7 @@ type RunSpec struct {
 	DynamicPath  string // tilt-UI route file; "" when not Tilt
 	Env          []string
 	TLS          bool
+	Quiet        bool // human/progress text → stderr (keeps --json stdout clean)
 }
 
 // Runner brings a stack up. Teardown stays shared in cmd/down.go.
@@ -49,10 +51,20 @@ func New(name string) Runner {
 	return composeRunner{}
 }
 
+// emit writes human/progress text to stdout, or stderr when Quiet (so --json
+// stdout stays machine-clean).
+func emit(s RunSpec, format string, a ...any) {
+	w := os.Stdout
+	if s.Quiet {
+		w = os.Stderr
+	}
+	fmt.Fprintf(w, format, a...)
+}
+
 // printURLs prints the shared app-route URLs for a stack.
 func printURLs(s RunSpec) {
-	fmt.Printf("lane: %s\n", s.Slug)
+	emit(s, "lane: %s\n", s.Slug)
 	for _, r := range s.Routes {
-		fmt.Printf("  → http://%s  (%s:%d)\n", r.Hostname, r.Service, r.Port)
+		emit(s, "  → http://%s  (%s:%d)\n", r.Hostname, r.Service, r.Port)
 	}
 }
