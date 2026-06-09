@@ -154,7 +154,7 @@ func Render(stacks []stack.Stack, routers []traefikapi.Router) string {
 	}
 
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("🛣  lane — running stacks") + "\n\n")
+	b.WriteString(titleStyle.Render("lane — running stacks") + "\n\n")
 	if len(stacks) == 0 {
 		b.WriteString(dimStyle.Render("  (none — run `lane up` in a project)\n"))
 		return b.String()
