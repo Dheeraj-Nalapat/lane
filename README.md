@@ -1,5 +1,9 @@
 # lane 🛣️
 
+[![CI](https://github.com/Dheeraj-Nalapat/lane/actions/workflows/ci.yml/badge.svg)](https://github.com/Dheeraj-Nalapat/lane/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Dheeraj-Nalapat/lane)](https://github.com/Dheeraj-Nalapat/lane/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Run many project stacks at once — across different projects **and** multiple git
 worktrees of the same project — with **zero host-port conflicts**. Each stack is
 reachable in the browser at a friendly `*.localhost` URL via one shared
