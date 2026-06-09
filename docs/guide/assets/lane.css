@@ -1,4 +1,31 @@
-.lane-hero { text-align: center; padding: 2.5rem 1rem 2rem; }
+.lane-hero { text-align: center; padding: 2.5rem 1rem 2rem; position: relative; overflow: hidden; }
+.lane-hero > *:not(.lane-bg) { position: relative; z-index: 1; }
+
+/* subtle animated git-graph behind the hero: branches grow, hold, fade, respawn */
+.lane-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  color: var(--md-primary-fg-color); opacity: .14; }
+.lane-bg svg { width: 100%; height: 100%; display: block; }
+.lane-branch { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0;
+  animation: lane-branch 14s ease-in-out infinite; }
+.lane-node { transform-box: fill-box; transform-origin: center; opacity: 0;
+  animation: lane-node 14s ease-in-out infinite; }
+.lane-node circle { fill: currentColor; }
+.lane-node text { fill: currentColor; font: 600 14px var(--md-code-font-family, monospace); }
+@keyframes lane-branch {
+  0%        { stroke-dashoffset: 1; opacity: 0; }
+  6%        { opacity: 1; }
+  16%, 62%  { stroke-dashoffset: 0; opacity: 1; }
+  80%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes lane-node {
+  0%, 14%   { opacity: 0; transform: scale(0); }
+  24%, 62%  { opacity: 1; transform: scale(1); }
+  80%, 100% { opacity: 0; transform: scale(.3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lane-branch, .lane-node { animation: none; opacity: .55; stroke-dashoffset: 0; transform: none; }
+}
 /* size the terminal to its ASCII content; scroll (not clip) on narrow screens */
 .lane-hero-term { width: fit-content; max-width: 100%; margin: 0 auto 1.75rem; text-align: left; }
 /* scoped under .lane-hero so it outranks Material's `.md-typeset h1` margin reset */
@@ -7,7 +34,9 @@
   color: var(--md-primary-fg-color); }
 .lane-name { font-size: 4rem; font-weight: 800; letter-spacing: .08em; margin: 0;
   color: var(--md-primary-fg-color); }
-.lane-tag { font-size: .95rem; max-width: 38rem; margin: .25rem auto 1.25rem; opacity: .85; line-height: 1.5; }
+.lane-tag { font-size: .95rem; max-width: 38rem; margin: .25rem auto .4rem; opacity: .85; line-height: 1.5; }
+.lane-agents { font-size: .95rem; max-width: 42rem; margin: 0 auto 1.4rem; opacity: .8; line-height: 1.5; }
+.lane-agents strong { color: var(--md-primary-fg-color); font-weight: 700; }
 .lane-sub { max-width: 40rem; margin: 0 auto 1.5rem; opacity: .85; }
 
 .lane-pitch { max-width: 60rem; margin: 1rem auto 3rem; padding: 0 1rem; }

@@ -2,6 +2,24 @@
 
 {% block content %}
 <section class="lane-hero">
+  <div class="lane-bg" aria-hidden="true">
+    <svg viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid slice">
+      <path class="lane-branch" pathLength="1" style="animation-delay:0s"   d="M70,340 C170,340 210,340 290,340"/>
+      <path class="lane-branch" pathLength="1" style="animation-delay:-2s"  d="M290,340 C380,320 440,230 530,210"/>
+      <path class="lane-branch" pathLength="1" style="animation-delay:-4s"  d="M290,340 C380,360 440,450 530,470"/>
+      <path class="lane-branch" pathLength="1" style="animation-delay:-6s"  d="M530,210 C620,195 700,150 790,140"/>
+      <path class="lane-branch" pathLength="1" style="animation-delay:-8s"  d="M530,470 C620,485 700,540 790,555"/>
+      <path class="lane-branch" pathLength="1" style="animation-delay:-10s" d="M530,210 C640,230 720,300 830,330"/>
+      <path class="lane-branch" pathLength="1" style="animation-delay:-12s" d="M530,470 C650,460 780,440 900,430"/>
+      <g class="lane-node" style="animation-delay:0s"><circle cx="290" cy="340" r="6"/><text x="306" y="345">main</text></g>
+      <g class="lane-node" style="animation-delay:-2s"><circle cx="530" cy="210" r="6"/><text x="546" y="215">v2</text></g>
+      <g class="lane-node" style="animation-delay:-4s"><circle cx="530" cy="470" r="6"/><text x="546" y="475">fix</text></g>
+      <g class="lane-node" style="animation-delay:-6s"><circle cx="790" cy="140" r="6"/><text x="806" y="145">feat-a</text></g>
+      <g class="lane-node" style="animation-delay:-8s"><circle cx="790" cy="555" r="6"/><text x="806" y="560">feat-b</text></g>
+      <g class="lane-node" style="animation-delay:-10s"><circle cx="830" cy="330" r="6"/><text x="846" y="335">v3</text></g>
+      <g class="lane-node" style="animation-delay:-12s"><circle cx="900" cy="430" r="6"/><text x="916" y="435">v3.1</text></g>
+    </svg>
+  </div>
   <div class="lane-term lane-hero-term">
     <div class="lane-term-bar"><span></span><span></span><span></span><i>lane view</i></div>
 <pre><code>██╗      █████╗ ███╗   ██╗███████╗
@@ -20,6 +38,7 @@
 
   <h1 class="lane-headline">Run every version of your project — at once.</h1>
   <p class="lane-tag">Give each worktree or project an isolated stack at its own <code>*.localhost</code> URL.</p>
+  <p class="lane-agents">Built for you <strong>and your AI agents</strong> to test in parallel and ship faster.</p>
 
   <div class="lane-cta">
     <a class="md-button md-button--primary" href="getting-started/">Get started</a>
