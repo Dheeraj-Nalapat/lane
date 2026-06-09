@@ -62,3 +62,49 @@ compose_file = "docker-compose.yml"`)
 		t.Fatal("expected error for zero routes")
 	}
 }
+
+func TestLoad_RunnerValid(t *testing.T) {
+	p := write(t, `name = "x"
+compose_file = "docker-compose.yml"
+runner = "compose"
+[[routes]]
+service = "ui"
+port = 80
+`)
+	m, err := Load(p)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+	if m.Runner != "compose" {
+		t.Fatalf("Runner = %q, want compose", m.Runner)
+	}
+}
+
+func TestLoad_RunnerInvalid(t *testing.T) {
+	p := write(t, `name = "x"
+compose_file = "docker-compose.yml"
+runner = "nomad"
+[[routes]]
+service = "ui"
+port = 80
+`)
+	if _, err := Load(p); err == nil {
+		t.Fatal("expected error for invalid runner")
+	}
+}
+
+func TestLoad_RunnerDefaultsEmpty(t *testing.T) {
+	p := write(t, `name = "x"
+compose_file = "docker-compose.yml"
+[[routes]]
+service = "ui"
+port = 80
+`)
+	m, err := Load(p)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+	if m.Runner != "" {
+		t.Fatalf("Runner = %q, want empty", m.Runner)
+	}
+}

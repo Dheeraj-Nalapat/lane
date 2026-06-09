@@ -20,6 +20,7 @@ type Manifest struct {
 	Name        string  `toml:"name"`         // base slug
 	ComposeFile string  `toml:"compose_file"` // path to base compose, relative to project dir
 	APITarget   string  `toml:"api_target"`   // optional, e.g. "server:8000" for dev-server /api proxying
+	Runner      string  `toml:"runner"`       // "", "tilt", or "compose" (auto if "")
 	Routes      []Route `toml:"routes"`
 }
 
@@ -37,6 +38,9 @@ func Load(path string) (*Manifest, error) {
 	}
 	if len(m.Routes) == 0 {
 		return nil, errors.New(".lane.toml: at least one [[routes]] entry is required")
+	}
+	if m.Runner != "" && m.Runner != "tilt" && m.Runner != "compose" {
+		return nil, fmt.Errorf(".lane.toml: runner must be \"tilt\" or \"compose\" (got %q)", m.Runner)
 	}
 	for i := range m.Routes {
 		if m.Routes[i].Host == "" {
