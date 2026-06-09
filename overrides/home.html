@@ -10,11 +10,11 @@
 ██║     ██╔══██║██║╚██╗██║██╔══╝       proxy ● up    tls ○ off
 ███████╗██║  ██║██║ ╚████║███████╗
 ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
-─────────────────────────────────┬────────────────────────
-<span class="g">▸ remind</span>          ● running     │ remind  →  http://remind.localhost
-  remind-featx    ● running     │ remind-featx → http://remind-featx.localhost
-  checkout-api    ● running     │ a 3rd worktree, same repo, no conflict
-──────────────────────────────────┴───────────────────────
+──────────────────────────────┬──────────────────────────
+<span class="g">▸ webapp</span>        ● running     │ webapp  →  http://webapp.localhost
+  webapp-featx  ● running     │ same repo, 2nd worktree → webapp-featx.localhost
+  billing       ● running     │ a different project, also isolated
+──────────────────────────────┴──────────────────────────
  ↑/↓ select   o open   l logs   r restart   x down   q quit</code></pre>
   </div>
 
@@ -51,9 +51,9 @@
     <div class="lane-term-bar"><span></span><span></span><span></span><i>agent loop, per worktree</i></div>
 <pre><code><span class="dim">$</span> lane up --wait --json
 {
-  "slug": "remind-featx",
+  "slug": "webapp-featx",
   "runner": "compose",
-  "urls": [{ "service": "web", "url": "http://remind-featx.localhost" }]
+  "urls": [{ "service": "web", "url": "http://webapp-featx.localhost" }]
 }
 <span class="dim"># ...the agent runs its tests against that URL...</span>
 <span class="dim">$</span> lane down</code></pre>
