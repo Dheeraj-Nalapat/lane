@@ -107,6 +107,20 @@ func TestGenerate_NoTLSRouterWhenOff(t *testing.T) {
 	}
 }
 
+func TestGenerate_ProjectLabel(t *testing.T) {
+	out, err := Generate(Spec{
+		Slug: "webapp-featx", Project: "webapp", ProjectPath: "/p", Network: "lane",
+		Services: []string{"web"},
+		Routes:   []Route{{Service: "web", Port: 80, Hostname: "webapp-featx.localhost"}},
+	})
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	if !strings.Contains(string(out), "lane.project=webapp") {
+		t.Fatalf("missing lane.project label:\n%s", out)
+	}
+}
+
 func TestGenerate_ResetsBuiltImage(t *testing.T) {
 	out, _ := Generate(Spec{
 		Slug: "demo", ProjectPath: "/p", Network: "lane",

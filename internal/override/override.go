@@ -18,6 +18,7 @@ type Route struct {
 // Spec is the input to Generate.
 type Spec struct {
 	Slug          string
+	Project       string // manifest name, shared across a project's stacks
 	ProjectPath   string
 	Network       string // shared external network name, e.g. "lane"
 	Services      []string
@@ -52,6 +53,7 @@ func Generate(s Spec) ([]byte, error) {
 	idLabels := []string{
 		"lane.managed=true",
 		"lane.slug=" + s.Slug,
+		"lane.project=" + s.Project,
 		"lane.project.path=" + s.ProjectPath,
 	}
 	if s.TiltPort > 0 {

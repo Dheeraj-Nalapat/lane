@@ -192,7 +192,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 
 	tlsOn := tlsx.Enabled()
 	body, err := override.Generate(override.Spec{
-		Slug: sl, ProjectPath: dir, Network: proxy.Network,
+		Slug: sl, Project: m.Name, ProjectPath: dir, Network: proxy.Network,
 		Services: svcs, Routes: routes, TiltPort: tiltPort, TLS: tlsOn,
 		BuiltServices: built,
 	})
