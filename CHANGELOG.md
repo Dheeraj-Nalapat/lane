@@ -6,6 +6,8 @@ to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-10
+
 ### Added
 - **Selective / minimal bring-up:** `lane up [services...]` brings up only the
   named services (their `depends_on` is auto-included); `-p/--profile` activates
