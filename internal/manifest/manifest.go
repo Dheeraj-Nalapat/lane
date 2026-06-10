@@ -15,13 +15,26 @@ type Route struct {
 	Host    string `toml:"host"`    // optional host template, default "{slug}"
 }
 
+// Autoroute configures per-service auto-routing (every HTTP service gets a
+// <slug>-<service>.localhost host unless disabled or excluded).
+type Autoroute struct {
+	Enabled *bool    `toml:"enabled"` // nil => default true
+	Exclude []string `toml:"exclude"` // services never auto-routed
+}
+
 // Manifest is the parsed .lane.toml.
 type Manifest struct {
-	Name        string  `toml:"name"`         // base slug
-	ComposeFile string  `toml:"compose_file"` // path to base compose, relative to project dir
-	APITarget   string  `toml:"api_target"`   // optional, e.g. "server:8000" for dev-server /api proxying
-	Runner      string  `toml:"runner"`       // "", "tilt", or "compose" (auto if "")
-	Routes      []Route `toml:"routes"`
+	Name        string    `toml:"name"`         // base slug
+	ComposeFile string    `toml:"compose_file"` // path to base compose, relative to project dir
+	APITarget   string    `toml:"api_target"`   // optional, e.g. "server:8000" for dev-server /api proxying
+	Runner      string    `toml:"runner"`       // "", "tilt", or "compose" (auto if "")
+	Routes      []Route   `toml:"routes"`
+	Autoroute   Autoroute `toml:"autoroute"`
+}
+
+// AutorouteEnabled reports whether auto-routing is on (default true).
+func (m *Manifest) AutorouteEnabled() bool {
+	return m.Autoroute.Enabled == nil || *m.Autoroute.Enabled
 }
 
 // Load reads and validates a .lane.toml at path.
@@ -35,9 +48,6 @@ func Load(path string) (*Manifest, error) {
 	}
 	if m.ComposeFile == "" {
 		return nil, errors.New(".lane.toml: 'compose_file' is required")
-	}
-	if len(m.Routes) == 0 {
-		return nil, errors.New(".lane.toml: at least one [[routes]] entry is required")
 	}
 	if m.Runner != "" && m.Runner != "tilt" && m.Runner != "compose" {
 		return nil, fmt.Errorf(".lane.toml: runner must be \"tilt\" or \"compose\" (got %q)", m.Runner)

@@ -8,9 +8,9 @@ import (
 )
 
 var restartCmd = &cobra.Command{
-	Use:   "restart [path]",
+	Use:   "restart [services...]",
 	Short: "Recreate a stack (down then up)",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Best-effort teardown (a not-running stack is fine), then bring up fresh.
 		if err := runDown(cmd, args); err != nil {

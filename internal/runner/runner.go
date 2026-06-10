@@ -15,6 +15,9 @@ type RunSpec struct {
 	ComposePath  string
 	OverridePath string
 	Routes       []override.Route
+	Services     []string // subset to bring up; empty = all
+	Profiles     []string // compose profiles to activate
+	NoDeps       bool     // compose --no-deps (base mode: borrow deps instead)
 	Detach       bool
 	Build        bool
 	TiltPort     int    // 0 when not Tilt

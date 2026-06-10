@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/dheeraj-nalapat/lane/internal/basex"
 	"github.com/dheeraj-nalapat/lane/internal/compose"
 	"github.com/dheeraj-nalapat/lane/internal/dockerx"
 	"github.com/dheeraj-nalapat/lane/internal/gitx"
@@ -18,6 +20,7 @@ import (
 	"github.com/dheeraj-nalapat/lane/internal/preflight"
 	"github.com/dheeraj-nalapat/lane/internal/proxy"
 	"github.com/dheeraj-nalapat/lane/internal/ready"
+	"github.com/dheeraj-nalapat/lane/internal/routing"
 	"github.com/dheeraj-nalapat/lane/internal/runner"
 	"github.com/dheeraj-nalapat/lane/internal/slug"
 	"github.com/dheeraj-nalapat/lane/internal/tlsx"
@@ -30,25 +33,34 @@ var (
 	flagJSON        bool
 	flagWait        bool
 	flagWaitTimeout time.Duration
+	flagProfiles    []string
+	flagBase        bool
 )
 
 type upURL struct {
 	Service string `json:"service"`
 	Host    string `json:"host"`
 	URL     string `json:"url"`
+	Running bool   `json:"running"`
 }
 type upResult struct {
-	Slug    string  `json:"slug"`
-	Runner  string  `json:"runner"`
-	TLS     bool    `json:"tls"`
-	TiltURL string  `json:"tiltUrl,omitempty"`
-	URLs    []upURL `json:"urls"`
+	Slug     string   `json:"slug"`
+	Runner   string   `json:"runner"`
+	TLS      bool     `json:"tls"`
+	Base     string   `json:"base,omitempty"`
+	Fresh    []string `json:"fresh,omitempty"`
+	Borrowed []string `json:"borrowed,omitempty"`
+	TiltURL  string   `json:"tiltUrl,omitempty"`
+	URLs     []upURL  `json:"urls"`
 }
 
-func buildUpResult(slug, runnerName string, tlsOn bool, routes []override.Route, tiltPort int) upResult {
+func buildUpResult(slug, runnerName string, tlsOn bool, routes []override.Route, tiltPort int, running map[string]bool) upResult {
 	res := upResult{Slug: slug, Runner: runnerName, TLS: tlsOn}
 	for _, r := range routes {
-		res.URLs = append(res.URLs, upURL{Service: r.Service, Host: r.Hostname, URL: "http://" + r.Hostname})
+		res.URLs = append(res.URLs, upURL{
+			Service: r.Service, Host: r.Hostname, URL: "http://" + r.Hostname,
+			Running: running[r.Service],
+		})
 	}
 	if tiltPort > 0 {
 		res.TiltURL = "http://tilt-" + slug + ".localhost"
@@ -56,10 +68,13 @@ func buildUpResult(slug, runnerName string, tlsOn bool, routes []override.Route,
 	return res
 }
 
-func routeURLs(routes []override.Route) []string {
+// runningRouteURLs returns the URLs of routes whose service is running.
+func runningRouteURLs(routes []override.Route, running map[string]bool) []string {
 	var u []string
 	for _, r := range routes {
-		u = append(u, "http://"+r.Hostname)
+		if running[r.Service] {
+			u = append(u, "http://"+r.Hostname)
+		}
 	}
 	return u
 }
@@ -74,9 +89,9 @@ func printJSON(v any) error {
 }
 
 var upCmd = &cobra.Command{
-	Use:   "up [path]",
+	Use:   "up [services...]",
 	Short: "Bring a stack up behind the lane proxy",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.ArbitraryArgs,
 	RunE:  runUp,
 }
 
@@ -86,6 +101,8 @@ func init() {
 	upCmd.Flags().BoolVar(&flagJSON, "json", false, "print the result as JSON (implies detach)")
 	upCmd.Flags().BoolVar(&flagWait, "wait", false, "wait until routes are serving before returning (implies detach)")
 	upCmd.Flags().DurationVar(&flagWaitTimeout, "wait-timeout", 90*time.Second, "max time to wait with --wait")
+	upCmd.Flags().StringSliceVarP(&flagProfiles, "profile", "p", nil, "compose profile(s) to activate (repeatable)")
+	upCmd.Flags().BoolVar(&flagBase, "base", false, "run named services fresh and borrow the rest from a running base stack")
 	root.AddCommand(upCmd)
 }
 
@@ -95,7 +112,7 @@ func tiltfileExists(dir string) bool {
 }
 
 func runUp(cmd *cobra.Command, args []string) error {
-	dir, err := projectDir(args)
+	dir, err := projectDir()
 	if err != nil {
 		return err
 	}
@@ -120,34 +137,72 @@ func runUp(cmd *cobra.Command, args []string) error {
 		ManifestName: m.Name, Worktree: wt, DirBase: filepath.Base(dir),
 	})
 
-	var routes []override.Route
+	composePath := filepath.Join(dir, m.ComposeFile)
+	svcInfos, err := compose.Services(composePath)
+	if err != nil {
+		return err
+	}
+	var svcs, built []string
+	for _, s := range svcInfos {
+		svcs = append(svcs, s.Name)
+		if s.Build {
+			built = append(built, s.Name)
+		}
+	}
+
+	var explicit []override.Route
 	for _, r := range m.Routes {
-		routes = append(routes, override.Route{
+		explicit = append(explicit, override.Route{
 			Service: r.Service, Port: r.Port,
 			Hostname: identity.RenderHost(r.Host, sl),
 		})
 	}
+	routes, skipped := routing.Resolve(sl, svcInfos, explicit, m.AutorouteEnabled(), m.Autoroute.Exclude)
+	if len(skipped) > 0 && !flagJSON {
+		fmt.Fprintf(os.Stderr, "lane: not auto-routed (no single exposed port): %s\n", strings.Join(skipped, ", "))
+	}
+
 	runnerName := runner.Select(m.Runner, tiltfileExists(dir))
+	selection := len(args) > 0 || len(flagProfiles) > 0
+
+	baseSlug := ""
+	if flagBase {
+		if runnerName != "compose" {
+			return fmt.Errorf("base mode requires the compose runner")
+		}
+		if len(args) == 0 {
+			return fmt.Errorf("base mode needs at least one service to run fresh, e.g. `lane up api --base`")
+		}
+		if !flagDryRun {
+			stacks, err := dockerx.List()
+			if err != nil {
+				return err
+			}
+			baseSlug, err = basex.FindBase(stacks, m.Name, sl)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	if claimed, ok := dockerx.SlugOwner(sl); ok {
-		if claimed == dir {
+		if claimed != dir {
+			return fmt.Errorf("slug %q already in use by stack at %s; pass --slug to disambiguate", sl, claimed)
+		}
+		// Stack is already owned by this project. With no selection, a whole-stack
+		// `up` is a no-op; with a selection we fall through to bring the named
+		// services up additively (compose `up <svc>` leaves running ones alone).
+		if !selection {
 			if flagJSON {
-				return printJSON(buildUpResult(sl, runnerName, tlsx.Enabled(), routes, 0))
+				running, _ := dockerx.RunningServices(sl)
+				return printJSON(buildUpResult(sl, runnerName, tlsx.Enabled(), routes, 0, running))
 			}
 			fmt.Printf("stack %q already running — use `lane restart` to recreate, or `lane down` to stop\n", sl)
 			return nil
 		}
-		return fmt.Errorf("slug %q already in use by stack at %s; pass --slug to disambiguate", sl, claimed)
-	}
-
-	composePath := filepath.Join(dir, m.ComposeFile)
-	svcs, err := compose.ServiceNames(composePath)
-	if err != nil {
-		return err
-	}
-	built, err := compose.BuiltServices(composePath)
-	if err != nil {
-		return err
+		if runnerName == "tilt" {
+			return fmt.Errorf("stack %q is already running under Tilt; enable resources in the Tilt UI or run `lane restart`", sl)
+		}
 	}
 
 	if m.Runner == "tilt" && !tiltfileExists(dir) {
@@ -163,7 +218,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 
 	tlsOn := tlsx.Enabled()
 	body, err := override.Generate(override.Spec{
-		Slug: sl, ProjectPath: dir, Network: proxy.Network,
+		Slug: sl, Project: m.Name, ProjectPath: dir, Network: proxy.Network,
 		Services: svcs, Routes: routes, TiltPort: tiltPort, TLS: tlsOn,
 		BuiltServices: built,
 	})
@@ -193,7 +248,10 @@ func runUp(cmd *cobra.Command, args []string) error {
 		Slug: sl, Dir: dir, ComposePath: composePath, OverridePath: overridePath,
 		Routes: routes, Detach: detach, Build: flagBuild,
 		TiltPort: tiltPort, DynamicPath: dynamicPath, Env: env, TLS: tlsOn,
-		Quiet: flagJSON,
+		Quiet:    flagJSON,
+		Services: args,
+		Profiles: flagProfiles,
+		NoDeps:   flagBase,
 	}
 	r := runner.New(runnerName)
 
@@ -211,20 +269,61 @@ func runUp(cmd *cobra.Command, args []string) error {
 	if err := r.Up(spec); err != nil {
 		return err
 	}
-	if flagWait {
-		if err := ready.WaitReady(routeURLs(routes), flagWaitTimeout, nil); err != nil {
+
+	var borrowed []string
+	if flagBase {
+		baseContainers, err := dockerx.RunningContainers(baseSlug)
+		if err != nil {
 			return err
 		}
+		nameBySvc := map[string]string{}
+		var baseSvcs []string
+		for _, c := range baseContainers {
+			nameBySvc[c.Service] = c.Name
+			baseSvcs = append(baseSvcs, c.Service)
+		}
+		borrowed = basex.Borrowed(baseSvcs, args)
+		net := sl + "_default"
+		for _, svc := range borrowed {
+			cn := nameBySvc[svc]
+			if cn == "" {
+				continue
+			}
+			if err := dockerx.NetworkConnect(net, cn, svc); err != nil {
+				fmt.Fprintf(os.Stderr, "lane: warning: wiring %q from base %q: %v\n", svc, baseSlug, err)
+			}
+		}
+		if !flagJSON {
+			fmt.Fprintf(os.Stderr, "lane: borrowing from %s: %s\n", baseSlug, strings.Join(borrowed, ", "))
+		}
 	}
-	if flagJSON {
-		return printJSON(buildUpResult(sl, runnerName, tlsOn, routes, tiltPort))
+
+	if flagWait || flagJSON {
+		running, err := dockerx.RunningServices(sl)
+		if err != nil {
+			return err
+		}
+		if flagWait {
+			if err := ready.WaitReady(runningRouteURLs(routes, running), flagWaitTimeout, nil); err != nil {
+				return err
+			}
+		}
+		if flagJSON {
+			res := buildUpResult(sl, runnerName, tlsOn, routes, tiltPort, running)
+			if flagBase {
+				res.Base = baseSlug
+				res.Fresh = args
+				res.Borrowed = borrowed
+			}
+			return printJSON(res)
+		}
 	}
 	return nil
 }
 
-func projectDir(args []string) (string, error) {
-	if len(args) == 1 {
-		return filepath.Abs(args[0])
+func projectDir() (string, error) {
+	if flagPath != "" {
+		return filepath.Abs(flagPath)
 	}
 	return os.Getwd()
 }

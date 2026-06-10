@@ -8,8 +8,14 @@ worktrees in parallel), use `lane`:
 
 - `lane up --wait --json` — bring up an isolated stack for the current worktree,
   wait until it serves, and print `{slug, urls[]}` JSON (human logs on stderr).
+- `lane up <service...> --wait --json` — bring up only the services you changed
+  (deps auto-included). Each is reachable at `http://<slug>-<service>.localhost`;
+  the JSON `urls[]` include a per-service `running` flag.
+- `lane up <service> --base --wait --json` — run the changed service fresh and
+  borrow the rest from a running base stack of the same project (saves resources).
 - Test against the returned `url` (e.g. `http://<slug>.localhost`).
 - `lane down` — tear the stack down.
 - `lane ls --json` — list running stacks. Exit 0 = ok, 1 = error.
+- `-C <dir>` / `--path <dir>` — act on a project without `cd`-ing into it.
 
 Each worktree gets its own slug/URL, so parallel agents never collide on ports.

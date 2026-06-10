@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dheeraj-nalapat/lane/internal/dockerx"
 	"github.com/dheeraj-nalapat/lane/internal/gitx"
 	"github.com/dheeraj-nalapat/lane/internal/manifest"
 	"github.com/dheeraj-nalapat/lane/internal/paths"
@@ -16,9 +17,9 @@ import (
 )
 
 var downCmd = &cobra.Command{
-	Use:   "down [path]",
+	Use:   "down",
 	Short: "Tear down a stack and remove its generated files",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	RunE:  runDown,
 }
 
@@ -30,7 +31,7 @@ func init() {
 }
 
 func runDown(cmd *cobra.Command, args []string) error {
-	dir, err := projectDir(args)
+	dir, err := projectDir()
 	if err != nil {
 		return err
 	}
@@ -56,6 +57,16 @@ func runDown(cmd *cobra.Command, args []string) error {
 	// Tear down compose resources for this project. We pass only the base
 	// compose file: `down` removes containers by project name, so the override
 	// isn't required (and may already be gone — keeps `restart` robust).
+	// Base mode connects borrowed base containers into this stack's network.
+	// Disconnect them first, else compose can't remove the network ("active
+	// endpoints"). Base containers are only disconnected, never stopped.
+	net := sl + "_default"
+	if foreign, err := dockerx.ForeignContainers(net, sl); err == nil {
+		for _, c := range foreign {
+			_ = dockerx.NetworkDisconnect(net, c)
+		}
+	}
+
 	composePath := filepath.Join(dir, m.ComposeFile)
 	dcArgs := []string{"compose", "-p", sl, "-f", composePath, "down", "--remove-orphans"}
 	if flagDownVolumes {

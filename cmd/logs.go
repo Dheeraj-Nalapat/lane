@@ -14,11 +14,11 @@ import (
 )
 
 var logsCmd = &cobra.Command{
-	Use:   "logs [path]",
+	Use:   "logs",
 	Short: "Tail a stack's logs",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dir, err := projectDir(args)
+		dir, err := projectDir()
 		if err != nil {
 			return err
 		}

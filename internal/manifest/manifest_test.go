@@ -55,11 +55,37 @@ func TestLoad_MissingName(t *testing.T) {
 	}
 }
 
-func TestLoad_NoRoutes(t *testing.T) {
+func TestLoad_NoRoutesNowAllowed(t *testing.T) {
 	p := write(t, `name = "x"
 compose_file = "docker-compose.yml"`)
-	if _, err := Load(p); err == nil {
-		t.Fatal("expected error for zero routes")
+	m, err := Load(p)
+	if err != nil {
+		t.Fatalf("routes are optional now; got error: %v", err)
+	}
+	if len(m.Routes) != 0 {
+		t.Fatalf("got %d routes, want 0", len(m.Routes))
+	}
+	if !m.AutorouteEnabled() {
+		t.Fatal("autoroute should default to enabled")
+	}
+}
+
+func TestLoad_AutorouteBlock(t *testing.T) {
+	p := write(t, `name = "x"
+compose_file = "docker-compose.yml"
+
+[autoroute]
+enabled = false
+exclude = ["worker", "cron"]`)
+	m, err := Load(p)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+	if m.AutorouteEnabled() {
+		t.Fatal("autoroute should be disabled")
+	}
+	if len(m.Autoroute.Exclude) != 2 || m.Autoroute.Exclude[0] != "worker" {
+		t.Fatalf("Exclude = %v", m.Autoroute.Exclude)
 	}
 }
 
