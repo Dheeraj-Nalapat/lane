@@ -19,3 +19,18 @@ func TestParsePS(t *testing.T) {
 		t.Fatalf("remind tilt port = %d", bySlug["remind"])
 	}
 }
+
+func TestParseRunningServices(t *testing.T) {
+	// Two running containers + one exited, all in project "webapp".
+	out := []byte(`{"Labels":"com.docker.compose.project=webapp,com.docker.compose.service=api","State":"running"}
+{"Labels":"com.docker.compose.service=web,com.docker.compose.project=webapp","State":"running"}
+{"Labels":"com.docker.compose.project=webapp,com.docker.compose.service=db","State":"exited"}
+`)
+	got := parseRunningServices(out)
+	if !got["api"] || !got["web"] {
+		t.Fatalf("api and web should be running: %v", got)
+	}
+	if got["db"] {
+		t.Fatalf("db is exited; must not be running: %v", got)
+	}
+}

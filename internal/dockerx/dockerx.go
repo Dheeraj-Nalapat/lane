@@ -77,6 +77,39 @@ func List() ([]stack.Stack, error) {
 	return parsePS(out), nil
 }
 
+// RunningServices returns the set of compose service names currently running
+// for the given lane slug (compose project name).
+func RunningServices(slug string) (map[string]bool, error) {
+	cmd := exec.Command("docker", "ps",
+		"--filter", "label=com.docker.compose.project="+slug,
+		"--format", "{{json .}}")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	return parseRunningServices(out), nil
+}
+
+func parseRunningServices(out []byte) map[string]bool {
+	running := map[string]bool{}
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		if line == "" {
+			continue
+		}
+		var p psLine
+		if json.Unmarshal([]byte(line), &p) != nil {
+			continue
+		}
+		if p.State != "running" {
+			continue
+		}
+		if svc := labelMap(p.Labels)["com.docker.compose.service"]; svc != "" {
+			running[svc] = true
+		}
+	}
+	return running
+}
+
 // SlugOwner returns the project path that currently owns slug, if any.
 func SlugOwner(slug string) (string, bool) {
 	stacks, err := List()
