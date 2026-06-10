@@ -1,3 +1,7 @@
+---
+description: Run a Tilt project with lane while keeping live-reload and the Tilt dashboard — add a small gated Tiltfile shim and lane auto-detects the Tiltfile to drive Tilt.
+---
+
 # Recipe: a Tilt project
 
 If your project uses [Tilt](https://tilt.dev), lane drives it (keeping

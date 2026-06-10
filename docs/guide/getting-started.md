@@ -1,3 +1,7 @@
+---
+description: Get started with lane in 10 minutes — onboard a docker-compose or Tilt project, bring up an isolated dev stack at a *.localhost URL, and run multiple git worktrees in parallel with no port conflicts.
+---
+
 # Getting started with lane
 
 lane runs your project's stack behind a shared proxy so it's reachable at a

@@ -1,0 +1,37 @@
+# robots.txt for the lane documentation site.
+#
+# IMPORTANT: A robots.txt is only honored when served from the DOMAIN ROOT
+# (e.g. https://example.com/robots.txt). This site is published on a GitHub
+# Pages PROJECT subpath (https://dheeraj-nalapat.github.io/lane/), so crawlers
+# read https://dheeraj-nalapat.github.io/robots.txt instead and ignore this
+# file. It becomes effective once the docs are served from a root domain
+# (a custom domain via CNAME, or a user/org GitHub Pages site). It is kept
+# here so that move requires no extra work.
+
+# Allow general web crawlers.
+User-agent: *
+Allow: /
+
+# Explicitly welcome AI answer-engine crawlers (so the docs can be cited).
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://dheeraj-nalapat.github.io/lane/sitemap.xml

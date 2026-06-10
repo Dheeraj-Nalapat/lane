@@ -1,3 +1,7 @@
+---
+description: Full lane command reference — up, down, restart, ls, view, proxy, tls, init, open, logs, and doctor, with their flags, JSON output, and exit codes.
+---
+
 # Command reference
 
 | Command | What it does |

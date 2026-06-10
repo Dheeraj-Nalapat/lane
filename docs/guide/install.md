@@ -1,3 +1,7 @@
+---
+description: Install lane, a single static Go binary with no runtime dependencies. Prebuilt releases, a one-line install script, go install, or build from source on Linux, macOS, and Windows.
+---
+
 # Install
 
 lane is a single static Go binary with no runtime dependencies. Pick whichever

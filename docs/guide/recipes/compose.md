@@ -1,3 +1,7 @@
+---
+description: Run a plain docker-compose project with lane — no Tiltfile or shim required. Write a .lane.toml manifest, map your web service and port, and get a *.localhost URL.
+---
+
 # Recipe: a plain docker-compose project
 
 If your project has only a `docker-compose.yml` (no Tiltfile), lane drives

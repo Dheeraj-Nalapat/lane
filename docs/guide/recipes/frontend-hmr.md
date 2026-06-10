@@ -1,3 +1,7 @@
+---
+description: Run a frontend dev server with hot-reload (Vite, Next.js) behind the lane proxy — bind 0.0.0.0, allow *.localhost hosts, and pass HMR WebSockets through Traefik on port 80.
+---
+
 # Recipe: a dev server with hot-reload (Vite / Next.js)
 
 To run a frontend **dev server** (with HMR) behind the lane proxy, two things

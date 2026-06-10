@@ -1,3 +1,7 @@
+---
+description: Enable trusted HTTPS for lane's *.localhost stacks with mkcert — generate a wildcard cert, serve https://<slug>.localhost for secure cookies and HTTPS-only APIs, and toggle TLS on or off.
+---
+
 # HTTPS (optional)
 
 lane serves HTTP by default. For trusted `https://<slug>.localhost` (secure

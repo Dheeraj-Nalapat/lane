@@ -1,3 +1,7 @@
+---
+description: Use lane with AI coding agents like Claude Code and Cursor — give each git worktree an isolated, port-conflict-free stack so multiple agents test in parallel with race-safe, machine-readable lane up --wait --json.
+---
+
 # Using lane with coding agents (parallel testing)
 
 lane gives each git worktree an isolated, port-conflict-free stack, so multiple

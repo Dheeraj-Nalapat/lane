@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{#- SEO / AI-search metadata: Open Graph, Twitter, and JSON-LD structured data.
+    Injected into <head> on every page. page.meta.description comes from each
+    page's front-matter; it falls back to the site description. -#}
+{% block extrahead %}
+  {% set page_title = page.title ~ " · " ~ config.site_name if page and page.title and not page.is_homepage else config.site_name %}
+  {% set page_desc = page.meta.description if page and page.meta.description else config.site_description %}
+  {% set page_url = page.canonical_url if page and page.canonical_url else config.site_url %}
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ page_title }}">
+  <meta property="og:description" content="{{ page_desc }}">
+  <meta property="og:url" content="{{ page_url }}">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ page_title }}">
+  <meta name="twitter:description" content="{{ page_desc }}">
+
+  {%- if page and page.is_homepage %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "lane",
+    "description": "Command-line tool that runs every git worktree or project as an isolated dev stack at its own *.localhost URL — no port conflicts, built for humans and AI agents to test in parallel.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux, macOS, Windows",
+    "url": "{{ config.site_url }}",
+    "downloadUrl": "{{ config.repo_url }}/releases/latest",
+    "softwareHelp": "{{ config.site_url }}getting-started/",
+    "license": "{{ config.repo_url }}/blob/main/LICENSE",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "codeRepository": "{{ config.repo_url }}"
+  }
+  </script>
+  {%- endif %}
+{% endblock %}
