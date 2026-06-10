@@ -22,3 +22,12 @@ func TestRootCommand_HelpRuns(t *testing.T) {
 		t.Fatal("--help produced no output")
 	}
 }
+
+func TestPathFlagRegistered(t *testing.T) {
+	if root.PersistentFlags().Lookup("path") == nil {
+		t.Fatal("--path persistent flag not registered")
+	}
+	if root.PersistentFlags().ShorthandLookup("C") == nil {
+		t.Fatal("-C shorthand not registered")
+	}
+}

@@ -9,6 +9,7 @@ var (
 	flagSlug    string
 	flagDryRun  bool
 	flagVerbose bool
+	flagPath    string
 )
 
 var root = &cobra.Command{
@@ -23,6 +24,7 @@ func init() {
 	root.PersistentFlags().StringVar(&flagSlug, "slug", "", "override the stack slug")
 	root.PersistentFlags().BoolVar(&flagDryRun, "dry-run", false, "print what would happen, then exit")
 	root.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "verbose output")
+	root.PersistentFlags().StringVarP(&flagPath, "path", "C", "", "project directory (default: current directory)")
 }
 
 // Execute runs the CLI.

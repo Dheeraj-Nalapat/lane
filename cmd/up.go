@@ -74,9 +74,9 @@ func printJSON(v any) error {
 }
 
 var upCmd = &cobra.Command{
-	Use:   "up [path]",
+	Use:   "up [services...]",
 	Short: "Bring a stack up behind the lane proxy",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.ArbitraryArgs,
 	RunE:  runUp,
 }
 
@@ -95,7 +95,7 @@ func tiltfileExists(dir string) bool {
 }
 
 func runUp(cmd *cobra.Command, args []string) error {
-	dir, err := projectDir(args)
+	dir, err := projectDir()
 	if err != nil {
 		return err
 	}
@@ -222,9 +222,9 @@ func runUp(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func projectDir(args []string) (string, error) {
-	if len(args) == 1 {
-		return filepath.Abs(args[0])
+func projectDir() (string, error) {
+	if flagPath != "" {
+		return filepath.Abs(flagPath)
 	}
 	return os.Getwd()
 }

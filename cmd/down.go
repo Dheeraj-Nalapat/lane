@@ -16,9 +16,9 @@ import (
 )
 
 var downCmd = &cobra.Command{
-	Use:   "down [path]",
+	Use:   "down",
 	Short: "Tear down a stack and remove its generated files",
-	Args:  cobra.MaximumNArgs(1),
+	Args:  cobra.NoArgs,
 	RunE:  runDown,
 }
 
@@ -30,7 +30,7 @@ func init() {
 }
 
 func runDown(cmd *cobra.Command, args []string) error {
-	dir, err := projectDir(args)
+	dir, err := projectDir()
 	if err != nil {
 		return err
 	}
