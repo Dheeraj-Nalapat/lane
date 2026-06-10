@@ -6,6 +6,27 @@ to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Selective / minimal bring-up:** `lane up [services...]` brings up only the
+  named services (their `depends_on` is auto-included); `-p/--profile` activates
+  Docker Compose profiles. Plain `lane up` still brings up the whole stack.
+- **Per-service auto-routing:** every HTTP service is reachable at
+  `<slug>-<service>.localhost` (covered by the existing `*.localhost` TLS cert),
+  alongside explicit `[[routes]]`. `[[routes]]` is now **optional**; a new
+  `[autoroute]` block in `.lane.toml` disables it or excludes services.
+- **Base-borrowing — `lane up <svc> --base`:** run the changed services fresh in
+  a worktree and borrow everything else from a running **base** stack of the same
+  project (compose runner), instead of booting a full copy. `--json` reports
+  `base`, `fresh`, and `borrowed`.
+- `lane up --json` now reports per-service `running` status; `--wait` waits only
+  on services that actually started.
+- `lane.project` identity label on every stack (powers base discovery).
+
+### Changed
+- **Breaking:** the project directory moved from a positional `[path]` to the
+  global `-C`/`--path` flag (default: current directory) on `up`/`down`/`logs`/
+  `restart`. The positional arguments to `up`/`restart` are now **service names**.
+
 ## [0.1.0] - 2026-06-09
 
 ### Added

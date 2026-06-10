@@ -205,18 +205,23 @@ export default defineConfig({
 
 | Command | What it does |
 |---|---|
-| `lane up [path]` | Bring a stack up: derive slug → generate override → ensure proxy → run the selected runner. **Tilt runner:** foreground by default, `-d/--detach` to background. **Compose runner:** always detached; `-d` is a no-op, `--build` forces an image rebuild. |
-| `lane down [path]` | Tear down the stack (`docker compose down`) and delete generated files. Repo left untouched. |
+| `lane up [services...]` | Bring a stack up: derive slug → generate override → ensure proxy → run the selected runner. No args = whole stack; service names = only those (deps auto-included). `-p/--profile` activates compose profiles; `--base` borrows the rest from a base stack ([base stacks](docs/guide/base-stacks.md)). **Tilt runner:** foreground by default, `-d/--detach` to background. **Compose runner:** always detached; `--build` forces a rebuild. |
+| `lane down` | Tear down the stack (`docker compose down`) and delete generated files. Repo left untouched. |
+| `lane restart [services...]` | Recreate (down then up). |
 | `lane ls` | Quick, scriptable table of running stacks: slug, URL, Tilt port, state, path. |
 | `lane view` | Live, interactive control panel (master/detail): select a stack and `o`pen / `l`ogs / `r`estart / `x` down it; auto-refreshing. Piped/CI (non-TTY) prints a static snapshot; `--plain` forces it. |
 | `lane proxy up\|down\|status` | Manage the shared Traefik proxy + `lane` network. |
 | `lane doctor` | Preflight: Docker, Compose ≥ 2.20, Tilt, `*.localhost` resolution. |
 | `lane init` | Scaffold `.lane.toml` by inspecting the project's compose. |
 | `lane open` | Open a stack's URL in the browser (`--slug` to pick). |
-| `lane logs [path]` | Tail a stack's logs (detached log file, else `docker compose logs -f`). |
+| `lane logs` | Tail a stack's logs (detached log file, else `docker compose logs -f`). |
 
-**Global flags:** `--slug <x>` (override identity), `--dry-run` (print what would
-happen and exit — great for inspecting the generated override), `-v/--verbose`.
+Every HTTP service is also reachable at `<slug>-<service>.localhost`
+automatically — see [Selecting & reaching services](docs/guide/selecting-services.md).
+
+**Global flags:** `-C/--path <dir>` (project directory, default: cwd), `--slug
+<x>` (override identity), `--dry-run` (print what would happen and exit — great
+for inspecting the generated override), `-v/--verbose`.
 
 ---
 
@@ -252,6 +257,13 @@ lane down
 `--json` prints machine-readable output on stdout (human logs on stderr); exit
 `0` = success (incl. already-running), `1` = error. `lane ls --json` lists
 stacks. N parallel `lane up`s are race-safe (the shared proxy bring-up is locked).
+
+Agents can also **test only what changed** — `lane up api --wait --json` brings
+up just the named services (deps auto-included), each reachable at
+`<slug>-<service>.localhost` — and **borrow the rest from a base stack** with
+`lane up api --base` to save resources. See
+[Selecting services](docs/guide/selecting-services.md) and
+[Base stacks](docs/guide/base-stacks.md).
 
 **Skill files:** a Claude Code skill (`agent/claude`, installable as a plugin —
 `/plugin marketplace add Dheeraj-Nalapat/lane`) and a Cursor rule
@@ -358,8 +370,11 @@ your projects.
   (lane resets the `image:` of `build:` services so Compose names them per
   slug). **Tilt projects** opt in with the slug-tag pattern (`tag = (":" +
   lane_slug) ...` on `docker_build` refs — see `docs/onboarding-remind.md`).
-- **HTTP by default; HTTPS is opt-in** via `lane tls` (mkcert). Nested hosts
-  like `api.<slug>.localhost` aren't covered by the wildcard cert.
+- **HTTP by default; HTTPS is opt-in** via `lane tls` (mkcert). Per-service
+  auto-routes use single-level `<slug>-<service>.localhost`, which the wildcard
+  cert covers; only deeper nested hosts like `api.<slug>.localhost` aren't.
+- **Base-borrowing is compose-runner only** in v1 (Tilt errors clearly), and a
+  worktree borrows from a base of the **same project**.
 - **Docker mode only** — built around Tilt's `--docker` path / plain compose.
 - **Your own projects first** — not yet hardened for arbitrary third-party repos.
 
