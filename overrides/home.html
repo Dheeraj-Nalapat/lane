@@ -63,6 +63,12 @@
      keeps every stack isolated, so agents test concurrently instead of waiting in
      line for a port. <strong>More parallelism, faster iteration.</strong></p>
 
+  <p class="lane-pitch-lead">Need less than the whole app? Bring up just the
+     services you changed (<code>lane up api</code>) and borrow the rest from a
+     running <strong>base stack</strong> (<code>lane up api --base</code>) — each
+     service is auto-routed at <code>&lt;slug&gt;-&lt;service&gt;.localhost</code>,
+     so you spin up only what you're testing.</p>
+
   <div class="lane-term">
     <div class="lane-term-bar"><span></span><span></span><span></span><i>agent loop, per worktree</i></div>
 <pre><code><span class="dim">$</span> lane up --wait --json

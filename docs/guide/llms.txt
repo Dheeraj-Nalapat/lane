@@ -1,6 +1,6 @@
 # lane
 
-> lane is a command-line tool that runs every git worktree or project as an isolated dev stack at its own `*.localhost` URL — with no port conflicts. A shared Traefik proxy routes by hostname, so any number of stacks run side by side. It is built for both humans and AI coding agents to test in parallel and ship faster.
+> lane is a command-line tool that runs every git worktree or project as an isolated dev stack at its own `*.localhost` URL — with no port conflicts. A shared Traefik proxy routes by hostname, so any number of stacks run side by side. You can bring up your whole stack, or just the services you changed and borrow the rest from a running base stack. It is built for both humans and AI coding agents to test in parallel and ship faster.
 
 Key facts:
 
@@ -8,7 +8,10 @@ Key facts:
 - **Platforms:** Linux, macOS, Windows.
 - **Requirements:** Docker (>= 28) with Compose (>= 2.20), git; Tilt only for Tilt projects.
 - **How it works:** stacks publish zero host ports; a shared proxy routes `<slug>.localhost` to the right stack. Each git worktree gets its own slug, so N worktrees run as N live stacks simultaneously.
-- **Agent loop:** `lane up --wait --json` (race-safe, machine-readable) → run tests against the returned URL → `lane down`.
+- **Selective bring-up:** `lane up <service>` runs only the named services (deps auto-included); `-p/--profile` activates Docker Compose profiles. Plain `lane up` brings up the whole stack.
+- **Auto-routing:** every HTTP service is reachable at `<slug>-<service>.localhost` automatically (no explicit route config required).
+- **Base-borrowing:** `lane up <service> --base` runs the changed services fresh and borrows everything else from a running base stack of the same project — instead of booting a full copy per worktree.
+- **Agent loop:** `lane up --wait --json` (race-safe, machine-readable; reports per-service `running` status) → run tests against the returned URL → `lane down`.
 - **License:** MIT. Source: https://github.com/Dheeraj-Nalapat/lane
 
 ## Docs

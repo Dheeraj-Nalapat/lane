@@ -24,9 +24,17 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "lane",
-    "description": "Command-line tool that runs every git worktree or project as an isolated dev stack at its own *.localhost URL — no port conflicts, built for humans and AI agents to test in parallel.",
+    "description": "Command-line tool that runs every git worktree or project as an isolated dev stack at its own *.localhost URL — no port conflicts. Bring up just the services you changed and borrow the rest from a running base stack; every service is auto-routed at <slug>-<service>.localhost. Built for humans and AI agents to test in parallel.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Linux, macOS, Windows",
+    "featureList": [
+      "Isolated dev stack per git worktree at a *.localhost URL",
+      "Zero published host ports — a shared Traefik proxy routes by hostname",
+      "Selective bring-up: run only the services you changed (lane up <service>)",
+      "Per-service auto-routing at <slug>-<service>.localhost",
+      "Base-borrowing: run changed services fresh and borrow the rest from a running base stack (lane up <service> --base)",
+      "Machine-readable JSON output for AI coding agents (lane up --wait --json)"
+    ],
     "url": "{{ config.site_url }}",
     "downloadUrl": "{{ config.repo_url }}/releases/latest",
     "softwareHelp": "{{ config.site_url }}getting-started/",

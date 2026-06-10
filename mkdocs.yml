@@ -1,5 +1,5 @@
 site_name: lane
-site_description: Parallel, port-conflict-free dev stacks.
+site_description: Isolated, port-conflict-free dev stacks for every git worktree — bring up just the services you changed and borrow the rest from a running base stack.
 site_url: https://dheeraj-nalapat.github.io/lane/
 repo_url: https://github.com/Dheeraj-Nalapat/lane
 docs_dir: docs/guide
