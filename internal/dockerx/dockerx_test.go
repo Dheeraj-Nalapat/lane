@@ -1,6 +1,9 @@
 package dockerx
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestParsePS(t *testing.T) {
 	// One JSON line per container, as `docker ps --format '{{json .}}'` emits.
@@ -28,6 +31,54 @@ func TestParsePS_Project(t *testing.T) {
 	}
 	if stacks[0].Project != "webapp" {
 		t.Fatalf("Project = %q, want webapp", stacks[0].Project)
+	}
+}
+
+func TestParseContainers(t *testing.T) {
+	out := []byte(`{"Names":"webapp-db-1","Labels":"com.docker.compose.service=db,com.docker.compose.project=webapp","State":"running"}
+{"Names":"webapp-api-1","Labels":"com.docker.compose.project=webapp,com.docker.compose.service=api","State":"running"}
+{"Names":"webapp-old-1","Labels":"com.docker.compose.service=old,com.docker.compose.project=webapp","State":"exited"}
+`)
+	got := parseContainers(out)
+	byService := map[string]string{}
+	for _, c := range got {
+		byService[c.Service] = c.Name
+	}
+	if byService["db"] != "webapp-db-1" || byService["api"] != "webapp-api-1" {
+		t.Fatalf("unexpected containers: %v", got)
+	}
+	if _, ok := byService["old"]; ok {
+		t.Fatal("exited container must be excluded")
+	}
+}
+
+func TestParseForeignContainers(t *testing.T) {
+	// `docker network inspect <net> --format '{{json .Containers}}'` output.
+	out := []byte(`{
+		"abc": {"Name": "webapp-featx-api-1"},
+		"def": {"Name": "webapp-db-1"},
+		"ghi": {"Name": "webapp-auth-1"}
+	}`)
+	got := parseForeignContainers(out, "webapp-featx")
+	want := []string{"webapp-auth-1", "webapp-db-1"} // sorted; the featx one is ours
+	if len(got) != len(want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("got %v, want %v", got, want)
+		}
+	}
+}
+
+func TestNetworkArgs(t *testing.T) {
+	c := connectArgs("webapp-featx_default", "webapp-db-1", "db")
+	if strings.Join(c, " ") != "network connect --alias db webapp-featx_default webapp-db-1" {
+		t.Fatalf("connectArgs = %v", c)
+	}
+	d := disconnectArgs("webapp-featx_default", "webapp-db-1")
+	if strings.Join(d, " ") != "network disconnect webapp-featx_default webapp-db-1" {
+		t.Fatalf("disconnectArgs = %v", d)
 	}
 }
 
