@@ -1,3 +1,7 @@
+---
+description: Borrow services from a running base stack with lane up --base — run only the services you changed fresh in a worktree and reuse the rest, instead of every worktree booting the whole app.
+---
+
 # Borrowing from a base stack
 
 When only a few services changed, run just those fresh in a worktree and borrow

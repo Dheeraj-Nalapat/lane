@@ -1,3 +1,7 @@
+---
+description: Bring up only part of a lane stack — pass service names or Docker Compose profiles, let dependencies and routes resolve automatically, and reach each service at <slug>-<service>.localhost.
+---
+
 # Selecting & reaching services
 
 By default `lane up` brings up your whole stack. You can bring up just part of it.

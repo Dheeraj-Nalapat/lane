@@ -16,6 +16,8 @@ Key facts:
 - [Home](https://dheeraj-nalapat.github.io/lane/): overview of lane and what it does.
 - [Install](https://dheeraj-nalapat.github.io/lane/install/): install via prebuilt binary, install script, `go install`, or from source.
 - [Getting started](https://dheeraj-nalapat.github.io/lane/getting-started/): onboard a project and bring up your first stack in ~10 minutes.
+- [Selecting & reaching services](https://dheeraj-nalapat.github.io/lane/selecting-services/): bring up a subset of services or a compose profile; reach each at `<slug>-<service>.localhost`.
+- [Borrowing from a base stack](https://dheeraj-nalapat.github.io/lane/base-stacks/): run only changed services fresh and borrow the rest from a running base stack with `lane up --base`.
 - [Using lane with coding agents](https://dheeraj-nalapat.github.io/lane/agents/): run Claude Code / Cursor agents in parallel, one isolated stack per worktree.
 - [Command reference](https://dheeraj-nalapat.github.io/lane/commands/): every command, flag, JSON output, and exit code.
 - [HTTPS](https://dheeraj-nalapat.github.io/lane/https/): optional trusted HTTPS for `*.localhost` via mkcert.
