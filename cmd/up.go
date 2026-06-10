@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dheeraj-nalapat/lane/internal/basex"
 	"github.com/dheeraj-nalapat/lane/internal/compose"
 	"github.com/dheeraj-nalapat/lane/internal/dockerx"
 	"github.com/dheeraj-nalapat/lane/internal/gitx"
@@ -33,6 +34,7 @@ var (
 	flagWait        bool
 	flagWaitTimeout time.Duration
 	flagProfiles    []string
+	flagBase        bool
 )
 
 type upURL struct {
@@ -42,11 +44,14 @@ type upURL struct {
 	Running bool   `json:"running"`
 }
 type upResult struct {
-	Slug    string  `json:"slug"`
-	Runner  string  `json:"runner"`
-	TLS     bool    `json:"tls"`
-	TiltURL string  `json:"tiltUrl,omitempty"`
-	URLs    []upURL `json:"urls"`
+	Slug     string   `json:"slug"`
+	Runner   string   `json:"runner"`
+	TLS      bool     `json:"tls"`
+	Base     string   `json:"base,omitempty"`
+	Fresh    []string `json:"fresh,omitempty"`
+	Borrowed []string `json:"borrowed,omitempty"`
+	TiltURL  string   `json:"tiltUrl,omitempty"`
+	URLs     []upURL  `json:"urls"`
 }
 
 func buildUpResult(slug, runnerName string, tlsOn bool, routes []override.Route, tiltPort int, running map[string]bool) upResult {
@@ -97,6 +102,7 @@ func init() {
 	upCmd.Flags().BoolVar(&flagWait, "wait", false, "wait until routes are serving before returning (implies detach)")
 	upCmd.Flags().DurationVar(&flagWaitTimeout, "wait-timeout", 90*time.Second, "max time to wait with --wait")
 	upCmd.Flags().StringSliceVarP(&flagProfiles, "profile", "p", nil, "compose profile(s) to activate (repeatable)")
+	upCmd.Flags().BoolVar(&flagBase, "base", false, "run named services fresh and borrow the rest from a running base stack")
 	root.AddCommand(upCmd)
 }
 
@@ -158,6 +164,26 @@ func runUp(cmd *cobra.Command, args []string) error {
 
 	runnerName := runner.Select(m.Runner, tiltfileExists(dir))
 	selection := len(args) > 0 || len(flagProfiles) > 0
+
+	baseSlug := ""
+	if flagBase {
+		if runnerName != "compose" {
+			return fmt.Errorf("base mode requires the compose runner")
+		}
+		if len(args) == 0 {
+			return fmt.Errorf("base mode needs at least one service to run fresh, e.g. `lane up api --base`")
+		}
+		if !flagDryRun {
+			stacks, err := dockerx.List()
+			if err != nil {
+				return err
+			}
+			baseSlug, err = basex.FindBase(stacks, m.Name, sl)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	if claimed, ok := dockerx.SlugOwner(sl); ok {
 		if claimed != dir {
@@ -225,6 +251,7 @@ func runUp(cmd *cobra.Command, args []string) error {
 		Quiet:    flagJSON,
 		Services: args,
 		Profiles: flagProfiles,
+		NoDeps:   flagBase,
 	}
 	r := runner.New(runnerName)
 
@@ -242,6 +269,35 @@ func runUp(cmd *cobra.Command, args []string) error {
 	if err := r.Up(spec); err != nil {
 		return err
 	}
+
+	var borrowed []string
+	if flagBase {
+		baseContainers, err := dockerx.RunningContainers(baseSlug)
+		if err != nil {
+			return err
+		}
+		nameBySvc := map[string]string{}
+		var baseSvcs []string
+		for _, c := range baseContainers {
+			nameBySvc[c.Service] = c.Name
+			baseSvcs = append(baseSvcs, c.Service)
+		}
+		borrowed = basex.Borrowed(baseSvcs, args)
+		net := sl + "_default"
+		for _, svc := range borrowed {
+			cn := nameBySvc[svc]
+			if cn == "" {
+				continue
+			}
+			if err := dockerx.NetworkConnect(net, cn, svc); err != nil {
+				fmt.Fprintf(os.Stderr, "lane: warning: wiring %q from base %q: %v\n", svc, baseSlug, err)
+			}
+		}
+		if !flagJSON {
+			fmt.Fprintf(os.Stderr, "lane: borrowing from %s: %s\n", baseSlug, strings.Join(borrowed, ", "))
+		}
+	}
+
 	if flagWait || flagJSON {
 		running, err := dockerx.RunningServices(sl)
 		if err != nil {
@@ -253,7 +309,13 @@ func runUp(cmd *cobra.Command, args []string) error {
 			}
 		}
 		if flagJSON {
-			return printJSON(buildUpResult(sl, runnerName, tlsOn, routes, tiltPort, running))
+			res := buildUpResult(sl, runnerName, tlsOn, routes, tiltPort, running)
+			if flagBase {
+				res.Base = baseSlug
+				res.Fresh = args
+				res.Borrowed = borrowed
+			}
+			return printJSON(res)
 		}
 	}
 	return nil
