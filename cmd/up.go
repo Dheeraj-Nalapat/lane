@@ -157,9 +157,16 @@ func runUp(cmd *cobra.Command, args []string) error {
 	}
 
 	runnerName := runner.Select(m.Runner, tiltfileExists(dir))
+	selection := len(args) > 0 || len(flagProfiles) > 0
 
 	if claimed, ok := dockerx.SlugOwner(sl); ok {
-		if claimed == dir {
+		if claimed != dir {
+			return fmt.Errorf("slug %q already in use by stack at %s; pass --slug to disambiguate", sl, claimed)
+		}
+		// Stack is already owned by this project. With no selection, a whole-stack
+		// `up` is a no-op; with a selection we fall through to bring the named
+		// services up additively (compose `up <svc>` leaves running ones alone).
+		if !selection {
 			if flagJSON {
 				running, _ := dockerx.RunningServices(sl)
 				return printJSON(buildUpResult(sl, runnerName, tlsx.Enabled(), routes, 0, running))
@@ -167,7 +174,9 @@ func runUp(cmd *cobra.Command, args []string) error {
 			fmt.Printf("stack %q already running — use `lane restart` to recreate, or `lane down` to stop\n", sl)
 			return nil
 		}
-		return fmt.Errorf("slug %q already in use by stack at %s; pass --slug to disambiguate", sl, claimed)
+		if runnerName == "tilt" {
+			return fmt.Errorf("stack %q is already running under Tilt; enable resources in the Tilt UI or run `lane restart`", sl)
+		}
 	}
 
 	if m.Runner == "tilt" && !tiltfileExists(dir) {
