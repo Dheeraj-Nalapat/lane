@@ -27,6 +27,7 @@ nav:
   - Install: install.md
   - Getting started: getting-started.md
   - Selecting services: selecting-services.md
+  - Base stacks: base-stacks.md
   - Recipes:
     - Plain compose: recipes/compose.md
     - Tilt: recipes/tilt.md
