@@ -32,8 +32,16 @@ func TestRenderDynamic_TLS(t *testing.T) {
 	}
 }
 
-func TestUpArgs(t *testing.T) {
-	got := UpArgs(10377)
+func TestUpArgs_Resources(t *testing.T) {
+	got := UpArgs(10377, []string{"api", "web"})
+	want := []string{"up", "--host", "0.0.0.0", "--port", "10377", "api", "web", "--", "--docker"}
+	if strings.Join(got, " ") != strings.Join(want, " ") {
+		t.Fatalf("UpArgs = %v, want %v", got, want)
+	}
+}
+
+func TestUpArgs_NoResources(t *testing.T) {
+	got := UpArgs(10377, nil)
 	want := []string{"up", "--host", "0.0.0.0", "--port", "10377", "--", "--docker"}
 	if strings.Join(got, " ") != strings.Join(want, " ") {
 		t.Fatalf("UpArgs = %v, want %v", got, want)

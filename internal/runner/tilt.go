@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/dheeraj-nalapat/lane/internal/paths"
 	"github.com/dheeraj-nalapat/lane/internal/tiltx"
@@ -17,7 +18,7 @@ func (tiltRunner) Name() string { return "tilt" }
 func (tiltRunner) DryRunLines(s RunSpec) string {
 	dyn, _ := tiltx.RenderDynamicRoute(s.Slug, s.TiltPort, s.TLS)
 	return fmt.Sprintf("# runner: tilt\n# tilt port: %d\n# tilt dynamic (%s):\n%s\n# command: tilt %v\n# env adds: COMPOSE_PROJECT_NAME, LANE, LANE_SLUG, LANE_COMPOSE_OVERRIDE\n",
-		s.TiltPort, s.DynamicPath, dyn, tiltx.UpArgs(s.TiltPort))
+		s.TiltPort, s.DynamicPath, dyn, tiltx.UpArgs(s.TiltPort, s.Services))
 }
 
 func (tiltRunner) Up(s RunSpec) error {
@@ -32,9 +33,12 @@ func (tiltRunner) Up(s RunSpec) error {
 	printURLs(s)
 	emit(s, "  → http://tilt-%s.localhost  (Tilt UI)\n", s.Slug)
 
-	tcmd := exec.Command("tilt", tiltx.UpArgs(s.TiltPort)...)
+	tcmd := exec.Command("tilt", tiltx.UpArgs(s.TiltPort, s.Services)...)
 	tcmd.Dir = s.Dir
 	tcmd.Env = s.Env
+	if len(s.Profiles) > 0 {
+		tcmd.Env = append(tcmd.Env, "COMPOSE_PROFILES="+strings.Join(s.Profiles, ","))
+	}
 
 	if s.Detach {
 		logf, err := os.Create(filepath.Join(paths.Run(), s.Slug+".log"))
