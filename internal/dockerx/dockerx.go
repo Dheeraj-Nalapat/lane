@@ -43,7 +43,7 @@ func parsePS(out []byte) []stack.Stack {
 		}
 		s := bySlug[sl]
 		if s == nil {
-			s = &stack.Stack{Slug: sl, ProjectPath: lbl["lane.project.path"]}
+			s = &stack.Stack{Slug: sl, Project: lbl["lane.project"], ProjectPath: lbl["lane.project.path"]}
 			bySlug[sl] = s
 		}
 		s.Containers = append(s.Containers, p.Names)

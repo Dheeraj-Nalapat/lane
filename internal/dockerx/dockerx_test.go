@@ -20,6 +20,17 @@ func TestParsePS(t *testing.T) {
 	}
 }
 
+func TestParsePS_Project(t *testing.T) {
+	lines := `{"Names":"webapp-ui-1","Labels":"lane.managed=true,lane.slug=webapp,lane.project=webapp,lane.project.path=/p","State":"running"}`
+	stacks := parsePS([]byte(lines))
+	if len(stacks) != 1 {
+		t.Fatalf("got %d stacks, want 1", len(stacks))
+	}
+	if stacks[0].Project != "webapp" {
+		t.Fatalf("Project = %q, want webapp", stacks[0].Project)
+	}
+}
+
 func TestParseRunningServices(t *testing.T) {
 	// Two running containers + one exited, all in project "webapp".
 	out := []byte(`{"Labels":"com.docker.compose.project=webapp,com.docker.compose.service=api","State":"running"}
