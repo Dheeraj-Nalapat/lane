@@ -36,9 +36,65 @@ lane up api --base --wait --json     # api fresh; db, auth, web borrowed from th
 
 See [Borrowing from a base stack](base-stacks.md).
 
-**Install the skills.** Run `lane teach` in your project — lane auto-detects
-which harnesses you use (`.claude/`, `.cursor/`, `AGENTS.md`) and installs its
-skill/rule for each (run `lane skills` first to see what's available). Use
-`lane teach --global` for the Claude skill in user config. The Claude skill is
-also installable as a marketplace plugin
+## Teaching your agent to drive lane
+
+lane ships the recipe above as ready-made agent files and installs them from the
+binary — no copy-paste. Two commands:
+
+```bash
+lane skills   # show what lane can install, and what's already present
+lane teach    # install it into this project
+```
+
+### What gets installed
+
+| Harness | Installs | Where |
+|---|---|---|
+| **Claude Code** | a skill (`SKILL.md`) | `.claude/skills/lane/` (project) or `~/.claude/skills/lane/` (global) |
+| **Cursor** | a project rule (`lane.mdc`) | `.cursor/rules/` |
+| **AGENTS.md** | a lane section (Codex, Copilot, Gemini, …) | `./AGENTS.md` |
+
+Each tells the agent the same thing: use `lane up --wait --json` for an isolated
+per-worktree stack, test against the returned URL, `lane down` when finished —
+plus the selective bring-up and base-borrowing shortcuts.
+
+### `lane skills`
+
+Read-only. Lists each integration, the path it targets, and its state
+(`not installed`, `installed (current)`, `installed (outdated)`). `--json` for
+machine output; `--global` shows the global-config targets.
+
+```text
+KEY     TITLE              TARGET                             STATE
+claude  Claude Code skill  .claude/skills/lane/SKILL.md       not installed
+cursor  Cursor rule        .cursor/rules/lane.mdc             installed (current)
+agents  AGENTS.md section  AGENTS.md                          not installed
+```
+
+### `lane teach`
+
+Installs the integrations. With no arguments it **auto-detects** which harnesses
+the project already uses (`.claude/`, `.cursor/`, `AGENTS.md`) and installs for
+those; if none are detected it installs all three. Select explicitly with
+positional args or flags:
+
+```bash
+lane teach                      # auto-detect
+lane teach claude cursor        # only these (also: --claude / --cursor / --agents-md)
+lane teach --global             # Claude skill into ~/.claude (user config)
+lane teach --dry-run            # preview without writing
+lane teach --json               # machine-readable results
+```
+
+It's **idempotent**: lane-owned files (Claude skill, Cursor rule) are
+overwritten with the version-matched content, and the AGENTS.md edit is confined
+to a `<!-- lane:start -->`/`<!-- lane:end -->` block so the rest of your
+`AGENTS.md` is preserved. Re-running reports `created` / `updated` / `unchanged`
+per target.
+
+Cursor's **global** rules are UI-only, so `lane teach --global --cursor` can't
+write a file — it prints the rule for you to paste into *Cursor Settings →
+Rules → User Rules* instead.
+
+The Claude skill is also installable as a marketplace plugin
 (`/plugin marketplace add Dheeraj-Nalapat/lane`).
