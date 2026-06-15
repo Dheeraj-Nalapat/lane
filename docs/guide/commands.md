@@ -16,6 +16,8 @@ description: Full lane command reference — up, down, restart, ls, view, proxy,
 | `lane init` | Scaffold `.lane.toml` from your compose. |
 | `lane open` / `lane logs` | Open a stack's URL / tail its logs. |
 | `lane doctor` | Preflight checks (Docker, Compose ≥ 2.20, `*.localhost`). |
+| `lane skills` | Show the agent integrations lane can install (Claude Code skill, Cursor rule, AGENTS.md section) and whether each is already present. `--json`; `--global` shows global-config targets. |
+| `lane teach [claude\|cursor\|agents...]` | Install those integrations into the current project. No args → auto-detect the harnesses in use (installs all three if none detected). `--claude`/`--cursor`/`--agents-md` select explicitly. `--global` installs the Claude skill to user config; for Cursor it prints the rule to paste into Settings → Rules (global Cursor rules are UI-only). `--dry-run` previews; `--json` for machine output. |
 
 Every HTTP service is reachable at `<slug>-<service>.localhost` automatically —
 see [Selecting & reaching services](selecting-services.md).

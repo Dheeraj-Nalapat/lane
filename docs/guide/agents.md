@@ -36,6 +36,9 @@ lane up api --base --wait --json     # api fresh; db, auth, web borrowed from th
 
 See [Borrowing from a base stack](base-stacks.md).
 
-**Skill files:** a Claude Code skill (installable as a plugin —
-`/plugin marketplace add Dheeraj-Nalapat/lane`) and a Cursor rule live under
-`agent/` in the repo.
+**Install the skills.** Run `lane teach` in your project — lane auto-detects
+which harnesses you use (`.claude/`, `.cursor/`, `AGENTS.md`) and installs its
+skill/rule for each (run `lane skills` first to see what's available). Use
+`lane teach --global` for the Claude skill in user config. The Claude skill is
+also installable as a marketplace plugin
+(`/plugin marketplace add Dheeraj-Nalapat/lane`).

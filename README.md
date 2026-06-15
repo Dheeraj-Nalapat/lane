@@ -98,6 +98,10 @@ lane view               # rich control panel (live routing)
 
 # Stop a stack (leaves your repo byte-for-byte unchanged)
 lane down
+
+# Teach your coding agent to drive lane (Claude Code / Cursor / AGENTS.md):
+lane teach              # auto-detects the harnesses in this project
+lane skills             # see what's available first
 ```
 
 ---
