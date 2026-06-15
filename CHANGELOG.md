@@ -6,6 +6,20 @@ to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-15
+
+### Added
+- **Self-installing agent skills — `lane teach` / `lane skills`:** `lane skills`
+  shows the agent integrations lane can install (Claude Code skill, Cursor rule,
+  AGENTS.md section) and whether each is present; `lane teach` installs them. With
+  no arguments `lane teach` auto-detects the harnesses in use (`.claude/`,
+  `.cursor/`, `AGENTS.md`) and installs for those, or all three if none are
+  detected. Content is embedded in the binary. `--global` installs the Claude
+  skill to user config (Cursor global rules are UI-only, so it prints the rule to
+  paste into Settings → Rules); `--dry-run` previews; `--json` for machine output.
+  AGENTS.md edits are merged into a `<!-- lane:start -->`/`<!-- lane:end -->`
+  block, preserving the rest of the file.
+
 ## [0.2.0] - 2026-06-10
 
 ### Added
