@@ -1,6 +1,8 @@
 package agentskills
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -51,5 +53,84 @@ func TestMergeAgents_Idempotent(t *testing.T) {
 	}
 	if once != twice {
 		t.Fatal("merge not idempotent")
+	}
+}
+
+func TestApply_OwnFile_CreateThenUnchanged(t *testing.T) {
+	dir := t.TempDir()
+	it, _ := Get("cursor")
+
+	r1, err := Apply(it, dir, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r1.Status != StatusCreated {
+		t.Fatalf("first apply status = %q, want created", r1.Status)
+	}
+	r2, err := Apply(it, dir, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r2.Status != StatusUnchanged {
+		t.Fatalf("second apply status = %q, want unchanged", r2.Status)
+	}
+}
+
+func TestApply_OwnFile_Updated(t *testing.T) {
+	dir := t.TempDir()
+	it, _ := Get("cursor")
+	if _, err := Apply(it, dir, false, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, it.ProjectRel), []byte("stale"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	r, err := Apply(it, dir, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Status != StatusUpdated {
+		t.Fatalf("status = %q, want updated", r.Status)
+	}
+}
+
+func TestApply_Agents_LifeCycle(t *testing.T) {
+	dir := t.TempDir()
+	it, _ := Get("agents")
+
+	r1, _ := Apply(it, dir, false, false)
+	if r1.Status != StatusCreated {
+		t.Fatalf("status = %q, want created", r1.Status)
+	}
+	r2, _ := Apply(it, dir, false, false)
+	if r2.Status != StatusUnchanged {
+		t.Fatalf("status = %q, want unchanged", r2.Status)
+	}
+}
+
+func TestApply_CursorGlobalIsManual(t *testing.T) {
+	dir := t.TempDir()
+	it, _ := Get("cursor")
+	r, err := Apply(it, dir, true, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Status != StatusSkipped || r.Content == "" {
+		t.Fatalf("cursor global: status=%q content-empty=%v, want skipped + content", r.Status, r.Content == "")
+	}
+}
+
+func TestApply_DryRunWritesNothing(t *testing.T) {
+	dir := t.TempDir()
+	it, _ := Get("cursor")
+	r, err := Apply(it, dir, false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Status != StatusCreated {
+		t.Fatalf("dry-run status = %q, want created", r.Status)
+	}
+	if _, err := os.Stat(filepath.Join(dir, it.ProjectRel)); !os.IsNotExist(err) {
+		t.Fatal("dry-run wrote a file")
 	}
 }
