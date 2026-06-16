@@ -6,6 +6,14 @@ to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-06-16
+
+### Fixed
+- **`lane --version` now reports the real version.** Previously it always
+  printed `dev` unless built by GoReleaser. It now falls back to the binary's
+  embedded build info — the module version for `go install`, or the VCS revision
+  for local builds — when the release `-ldflags` version is unset.
+
 ## [0.2.1] - 2026-06-15
 
 ### Added
